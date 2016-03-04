@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin">
+
+    <ImageView
+        android:id="@+id/status_icon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        tools:background="@drawable/tracking_status_icon"
+        tools:src="@drawable/ic_status_indeterminate"
+        android:cropToPadding="false"
+        android:scaleType="centerCrop"
+        android:padding="5dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginRight="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="The event description goes here."
+        android:id="@+id/description"
+        android:layout_alignTop="@+id/status_icon"
+        android:layout_toRightOf="@+id/status_icon"
+        android:layout_toEndOf="@+id/status_icon"
+        android:textSize="17sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="3d ago"
+        android:id="@+id/date"
+        android:layout_below="@+id/description"
+        android:layout_alignLeft="@+id/description"
+        android:layout_alignStart="@+id/description"
+        android:textStyle="italic" />
+
+</RelativeLayout>

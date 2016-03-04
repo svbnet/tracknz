@@ -1,0 +1,56 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="co.svbnet.tracknz.activity.PackageInfoActivity"
+    android:orientation="vertical"
+    android:background="@color/material_grey_50">
+
+    <include
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/toolbar" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingStart="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:background="@color/window_background">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Detailed description"
+            android:id="@+id/detailed_description"
+            android:textSize="18sp"
+            android:layout_marginBottom="15dp" />
+
+        <TextView
+            tools:text="NZ Post"
+            android:fontFamily="sans-serif-light"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/source"
+            android:layout_marginBottom="20dp" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foreground="@drawable/bottom_shadow"
+        />
+
+    <ListView
+        tools:listitem="@layout/item_package_event"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/events_list"
+        android:divider="@null"
+        android:dividerHeight="@null" />
+
+</LinearLayout>

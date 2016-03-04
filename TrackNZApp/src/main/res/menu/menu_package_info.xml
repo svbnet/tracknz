@@ -1,0 +1,55 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="co.svbnet.tracknz.activity.PackageInfoActivity">
+
+    <item
+        android:id="@+id/action_set_label"
+        android:title="@string/action_set_label"
+        app:showAsAction="ifRoom|withText"
+        android:icon="@drawable/ic_action_label"/>
+
+    <item
+        android:id="@+id/action_share"
+        android:title="@string/action_share"
+        app:showAsAction="ifRoom|withText"
+        android:icon="@drawable/ic_share_white_24dp">
+        <menu>
+            <item
+                android:id="@+id/action_share_code"
+                android:title="@string/action_share_code" />
+            <item
+                android:id="@+id/action_share_url"
+                android:title="@string/action_share_url" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_copy_code"
+        android:title="@string/action_copy_code"
+        app:showAsAction="never" />
+
+    <item
+        android:checkable="true"
+        android:title="@string/action_notify"
+        android:id="@+id/action_notify"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_refresh"
+        android:title="@string/action_refresh"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_open_in_browser"
+        android:title="@string/action_open_in_browser"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_delete"
+        android:title="@string/action_delete"
+        app:showAsAction="never" />
+
+</menu>

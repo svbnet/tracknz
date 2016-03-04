@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+        <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+                <item name="colorPrimary">@color/primary</item>
+                <item name="colorPrimaryDark">@color/primary_dark</item>
+                <item name="colorAccent">@color/accent</item>
+                <item name="windowActionModeOverlay">true</item>
+                <item name="windowActionBar">false</item>
+                <item name="android:textColor">@color/text</item>
+                <item name="actionModeBackground">@color/primary</item>
+                <item name="actionModeSplitBackground">@color/primary_dark</item>
+                <item name="android:windowBackground">@color/window_background</item>
+                <item name="android:activatedBackgroundIndicator">
+                        @drawable/tracked_package_background
+                </item>
+                <item name="android:colorBackground">@android:color/white</item>
+        </style>
+</resources>
