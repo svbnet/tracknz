@@ -22,8 +22,7 @@ import java.util.List;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.tasks.PackageRetrievalTask;
-import co.svbnet.tracknz.tracking.TrackedPackage;
-import co.svbnet.tracknz.tracking.TrackingService;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.CodeValidationUtil;
@@ -146,7 +145,7 @@ public class CodeInputActivity extends ToolbarActivity {
         }
 
         @Override
-        protected void onPostExecute(List<TrackedPackage> trackedPackages) {
+        protected void onPostExecute(List<NZPostTrackedPackage> trackedPackages) {
             progressDialog.hide();
             super.onPostExecute(trackedPackages);
         }
@@ -171,9 +170,9 @@ public class CodeInputActivity extends ToolbarActivity {
         }
 
         @Override
-        protected void onSuccess(List<TrackedPackage> retrievedPackages) {
+        protected void onSuccess(List<NZPostTrackedPackage> retrievedPackages) {
             // Only one package being retrieved
-            final TrackedPackage retrievedPackage = retrievedPackages.get(0);
+            final NZPostTrackedPackage retrievedPackage = retrievedPackages.get(0);
             // Create intent for Package info activity
             final Intent intent = new Intent(CodeInputActivity.this, PackageInfoActivity.class);
             intent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, retrievedPackage);

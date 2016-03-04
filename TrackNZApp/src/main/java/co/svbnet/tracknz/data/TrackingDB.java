@@ -11,9 +11,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.svbnet.tracknz.tracking.TrackedPackage;
 import co.svbnet.tracknz.tracking.TrackingFlag;
 import co.svbnet.tracknz.tracking.nzpost.DateFormatUtil;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
 
 /**
@@ -58,13 +58,13 @@ public class TrackingDB implements Closeable {
      * Inserts a package into the database
      * @param package_ The package to insert
      */
-    public void insertPackage(TrackedPackage package_) {
+    public void insertPackage(NZPostTrackedPackage package_) {
         openIfNotOpened();
         ContentValues values = createValuesForPackage(package_);
         db.insertOrThrow(TrackingDBHelper.TBL_TRACKED_PACKAGES, null, values);
-        Log.d(TAG, "insertPackage: " + package_.getCode());
-        if(package_.exists()) {
-            insertEvents(package_.getCode(), package_.getEvents());
+        Log.d(TAG, "insertPackage: " + package_.getTrackingCode());
+        if(package_.getEvents().size() > 0) {
+            insertEvents(package_.getTrackingCode(), package_.getEvents());
         }
     }
 
@@ -78,7 +78,7 @@ public class TrackingDB implements Closeable {
         db.delete(TrackingDBHelper.TBL_TRACKED_PACKAGE_EVENTS, "package = ?", new String[]{packageCode});
         Log.d(TAG, "insertEvents: delete for " + packageCode);
         for (NZPostTrackingEvent event : events) {
-            event.setPackage(packageCode);
+            event.setParentPackage(packageCode);
             db.insertOrThrow(TrackingDBHelper.TBL_TRACKED_PACKAGE_EVENTS, null, createValuesForEvent(event));
         }
         Log.d(TAG, "insertEvents: inserted " + events.size());
@@ -89,29 +89,29 @@ public class TrackingDB implements Closeable {
      * @param package_ The package to create content values for
      * @return A ContentValues object representing the package
      */
-    private ContentValues createValuesForPackage(TrackedPackage package_) {
+    private ContentValues createValuesForPackage(NZPostTrackedPackage package_) {
         ContentValues values = new ContentValues();
-        values.put("code", package_.getCode());
+        values.put("code", package_.getTrackingCode());
         values.put("label", package_.getLabel());
         values.put("source", package_.getSource());
-        values.put("short_description", package_.getShortDescription());
-        values.put("detailed_description", package_.getDetailedDescription());
+        values.put("short_description", package_.getStatus());
+        values.put("detailed_description", package_.getDetailedStatus());
         values.put("has_pending_events", package_.hasPendingEvents());
         return values;
     }
 
     private ContentValues createValuesForEvent(NZPostTrackingEvent event) {
         ContentValues values = new ContentValues();
-        values.put("package", event.getPackage());
+        values.put("package", event.getParentPackage());
         values.put("flag", event.getFlag());
         values.put("description", event.getDescription());
-        values.put("datetime", DateFormatUtil.FORMAT.format(event.getDateTime()));
+        values.put("datetime", DateFormatUtil.FORMAT.format(event.getDate()));
         return values;
     }
 
-    private TrackedPackage packageFromOrderedCursor(Cursor cur) {
-        TrackedPackage trackedPackage = new TrackedPackage();
-        trackedPackage.setCode(cur.getString(0));
+    private NZPostTrackedPackage packageFromOrderedCursor(Cursor cur) {
+        NZPostTrackedPackage trackedPackage = new NZPostTrackedPackage();
+        trackedPackage.setTrackingCode(cur.getString(0));
         trackedPackage.setLabel(cur.getString(1));
         trackedPackage.setSource(cur.getString(2));
         trackedPackage.setShortDescription(cur.getString(3));
@@ -122,11 +122,11 @@ public class TrackingDB implements Closeable {
 
     private NZPostTrackingEvent eventFromOrderedCursor(Cursor cur) {
         NZPostTrackingEvent NZPostTrackingEvent = new NZPostTrackingEvent();
-        NZPostTrackingEvent.setPackage(cur.getString(0));
+        NZPostTrackingEvent.setParentPackage(cur.getString(0));
         NZPostTrackingEvent.setFlag(cur.getInt(1));
         NZPostTrackingEvent.setDescription(cur.getString(2));
         try {
-            NZPostTrackingEvent.setDateTime(DateFormatUtil.FORMAT.parse(cur.getString(3)));
+            NZPostTrackingEvent.setDate(DateFormatUtil.FORMAT.parse(cur.getString(3)));
         } catch(ParseException e) {
             e.printStackTrace();
         }
@@ -138,7 +138,7 @@ public class TrackingDB implements Closeable {
      * @param code The code to look up
      * @return The package corresponding to the code (without events), or null if none is found.
      */
-    public TrackedPackage findPackage(String code) {
+    public NZPostTrackedPackage findPackage(String code) {
         openIfNotOpened();
         Cursor cur = db.query(
                 TrackingDBHelper.TBL_TRACKED_PACKAGES,
@@ -160,11 +160,11 @@ public class TrackingDB implements Closeable {
 
     /**
      * Retrieves all packages from the DB, along with their events.
-     * @return An {@link ArrayList} of {@link TrackedPackage}.
+     * @return An {@link ArrayList} of {@link NZPostTrackedPackage}.
      */
-    public ArrayList<TrackedPackage> findAllPackages() {
+    public ArrayList<NZPostTrackedPackage> findAllPackages() {
         openIfNotOpened();
-        ArrayList<TrackedPackage> trackedPackages = new ArrayList<>();
+        ArrayList<NZPostTrackedPackage> trackedPackages = new ArrayList<>();
         Cursor cur = db.query(
                 TrackingDBHelper.TBL_TRACKED_PACKAGES,
                 new String[] { "*" },
@@ -175,8 +175,8 @@ public class TrackingDB implements Closeable {
                 return trackedPackages;
             }
             while (!cur.isAfterLast()) {
-                TrackedPackage trackedPackage = packageFromOrderedCursor(cur);
-                trackedPackage.setEvents(findEventsForPackage(trackedPackage.getCode()));
+                NZPostTrackedPackage trackedPackage = packageFromOrderedCursor(cur);
+                trackedPackage.setEvents(findEventsForPackage(trackedPackage.getTrackingCode()));
                 trackedPackages.add(trackedPackage);
                 cur.moveToNext();
             }
@@ -212,7 +212,7 @@ public class TrackingDB implements Closeable {
     /**
      * Retrieves all events for a package, sorted by descending date.
      * @param packageCode The package code
-     * @return An {@link ArrayList} of {@link TrackedPackage}.
+     * @return An {@link ArrayList} of {@link NZPostTrackedPackage}.
      */
     public ArrayList<NZPostTrackingEvent> findEventsForPackage(String packageCode) {
         openIfNotOpened();
@@ -270,15 +270,15 @@ public class TrackingDB implements Closeable {
         db.update(TrackingDBHelper.TBL_TRACKED_PACKAGES, values, "code = ?", new String[]{packageCode});
     }
 
-    public void updatePackage(TrackedPackage trackedPackage) {
+    public void updatePackage(NZPostTrackedPackage trackedPackage) {
         openIfNotOpened();
         ContentValues values = new ContentValues();
-        values.put("short_description", trackedPackage.getShortDescription());
-        values.put("detailed_description", trackedPackage.getDetailedDescription());
+        values.put("short_description", trackedPackage.getStatus());
+        values.put("detailed_description", trackedPackage.getDetailedStatus());
         values.put("has_pending_events", true);
-        db.update(TrackingDBHelper.TBL_TRACKED_PACKAGES, values, "code = ?", new String[]{trackedPackage.getCode()});
-        Log.d(TAG, "updatePackage: updated " + trackedPackage.getCode());
-        insertEvents(trackedPackage.getCode(), trackedPackage.getEvents());
+        db.update(TrackingDBHelper.TBL_TRACKED_PACKAGES, values, "code = ?", new String[]{trackedPackage.getTrackingCode()});
+        Log.d(TAG, "updatePackage: updated " + trackedPackage.getTrackingCode());
+        insertEvents(trackedPackage.getTrackingCode(), trackedPackage.getEvents());
     }
 
     /**

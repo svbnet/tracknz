@@ -12,7 +12,6 @@ import co.svbnet.tracknz.BuildConfig;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.TrackNZApplication;
 import co.svbnet.tracknz.data.TrackingDB;
-import co.svbnet.tracknz.tracking.TrackingApi;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 
 /**

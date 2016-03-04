@@ -8,21 +8,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.svbnet.tracknz.data.TrackingDB;
-import co.svbnet.tracknz.tracking.TrackedPackage;
-import co.svbnet.tracknz.tracking.TrackingService;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
 
 /**
  * An {@link AsyncTask} that adds and updates packages.
  */
-public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<TrackedPackage>> {
+public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPostTrackedPackage>> {
 
     private static final String TAG = PackageUpdateTask.class.getName();
 
     protected TrackingService service;
     protected Context context;
     protected TrackingDB db;
-    protected List<TrackedPackage> newPackages;
+    protected List<NZPostTrackedPackage> newPackages;
 
     private Exception error;
     private List<String> codesToRetrieve = new ArrayList<>();
@@ -33,7 +32,7 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<Track
      * @param dbInstance A previously created DB instance. If null, a new instance will be created from the context supplied.
      * @param newPackages An optional list of new packages to insert into the DB.
      */
-    public PackageUpdateTask(TrackingService service, Context context, TrackingDB dbInstance, List<TrackedPackage> newPackages) {
+    public PackageUpdateTask(TrackingService service, Context context, TrackingDB dbInstance, List<NZPostTrackedPackage> newPackages) {
         this.service = service;
         this.context = context;
         this.db = dbInstance == null ? new TrackingDB(context) : dbInstance;
@@ -45,7 +44,7 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<Track
         db.open();
         codesToRetrieve = db.findAllPackageCodes();
         if (newPackages != null) {
-            for (TrackedPackage trackedPackage : newPackages) {
+            for (NZPostTrackedPackage trackedPackage : newPackages) {
                 codesToRetrieve.add(trackedPackage.getCode());
             }
         }
@@ -56,7 +55,7 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<Track
     }
 
     @Override
-    protected List<TrackedPackage> doInBackground(Void... params) {
+    protected List<NZPostTrackedPackage> doInBackground(Void... params) {
         try {
             Log.i(TAG, "Preparing to update codes...");
             return service.retrievePackages(codesToRetrieve);
@@ -67,7 +66,7 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<Track
     }
 
     @Override
-    protected void onPostExecute(List<TrackedPackage> trackedPackages) {
+    protected void onPostExecute(List<NZPostTrackedPackage> trackedPackages) {
         if (trackedPackages == null) {
             if (error != null) {
                 Log.e(TAG, "onPostExecute error", error);
@@ -77,10 +76,10 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<Track
             }
             return;
         }
-        List<TrackedPackage> updatedPackages = new ArrayList<>();
-        List<TrackedPackage> packagesWithErrors = new ArrayList<>();
+        List<NZPostTrackedPackage> updatedPackages = new ArrayList<>();
+        List<NZPostTrackedPackage> packagesWithErrors = new ArrayList<>();
 
-        for (TrackedPackage trackedPackage : trackedPackages) {
+        for (NZPostTrackedPackage trackedPackage : trackedPackages) {
             if (trackedPackage.getErrorCode() != null) {
                 packagesWithErrors.add(trackedPackage);
                 continue;
@@ -116,7 +115,7 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<Track
     }
 
     @Override
-    protected void onCancelled(List<TrackedPackage> trackedPackages) {
+    protected void onCancelled(List<NZPostTrackedPackage> trackedPackages) {
         super.onCancelled(trackedPackages);
         db.close();
     }
@@ -131,11 +130,11 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<Track
      * Invoked when there is an error with one or more packages.
      * @param packagesWithErrors The packages containing errors.
      */
-    protected void onPackageError(List<TrackedPackage> packagesWithErrors) { }
+    protected void onPackageError(List<NZPostTrackedPackage> packagesWithErrors) { }
 
     /**
      * Invoked after packages have been inserted into the database. Never called if there is an error.
      * @param updatedPackages New and updated packages.
      */
-    protected void onPackagesInserted(List<TrackedPackage> updatedPackages) { }
+    protected void onPackagesInserted(List<NZPostTrackedPackage> updatedPackages) { }
 }

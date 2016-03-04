@@ -16,8 +16,7 @@ import android.widget.Toast;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.adapter.PackageEventsArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
-import co.svbnet.tracknz.tracking.TrackedPackage;
-import co.svbnet.tracknz.tracking.TrackingApi;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.PackageModifyUtil;
 import co.svbnet.tracknz.util.ShareUtil;
@@ -26,7 +25,7 @@ import co.svbnet.tracknz.util.ShareUtil;
 public class PackageInfoActivity extends ToolbarActivity {
 
     public static final String PACKAGE_PARCEL = "PACKAGE_PARCEL";
-    private TrackedPackage trackedPackage;
+    private NZPostTrackedPackage trackedPackage;
     private TrackingDB db;
 
     private TextView detailedDescription;
@@ -41,7 +40,7 @@ public class PackageInfoActivity extends ToolbarActivity {
         trackedPackage = getIntent().getParcelableExtra(PACKAGE_PARCEL);
         db = new TrackingDB(this);
         if (trackedPackage.hasPendingEvents()) {
-            db.clearPendingEvents(trackedPackage.getCode());
+            db.clearPendingEvents(trackedPackage.getTrackingCode());
         }
         setupUi();
     }
@@ -56,9 +55,9 @@ public class PackageInfoActivity extends ToolbarActivity {
 
     private void refreshUI() {
         setTitle(trackedPackage.getTitle());
-        detailedDescription.setText(trackedPackage.getDetailedDescription());
+        detailedDescription.setText(trackedPackage.getDetailedStatus());
         if (trackedPackage.getLabel() != null) {
-            getSupportActionBar().setSubtitle(trackedPackage.getCode());
+            getSupportActionBar().setSubtitle(trackedPackage.getTrackingCode());
         }
         if (trackedPackage.getSourceTitle() != null) {
             ((TextView)findViewById(R.id.source)).setText(trackedPackage.getSourceTitle());

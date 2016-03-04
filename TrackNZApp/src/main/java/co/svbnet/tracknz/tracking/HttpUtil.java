@@ -1,7 +1,5 @@
 package co.svbnet.tracknz.tracking;
 
-import android.widget.Toast;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,7 +28,6 @@ public class HttpUtil {
         } finally {
             reader.close();
         }
-        Toast.makeText()
         return jsonString;
     }
 

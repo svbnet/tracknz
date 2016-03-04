@@ -6,13 +6,12 @@ import android.util.Log;
 import java.util.Arrays;
 import java.util.List;
 
-import co.svbnet.tracknz.tracking.TrackedPackage;
-import co.svbnet.tracknz.tracking.TrackingService;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 
 /**
  * Created by Joe on 2/10/2015.
  */
-public abstract class PackageRetrievalTask extends AsyncTask<String, Void, List<TrackedPackage>> {
+public abstract class PackageRetrievalTask extends AsyncTask<String, Void, List<NZPostTrackedPackage>> {
 
     private static final String TAG = PackageRetrievalTask.class.getName();
 
@@ -25,7 +24,7 @@ public abstract class PackageRetrievalTask extends AsyncTask<String, Void, List<
     }
 
     @Override
-    protected List<TrackedPackage> doInBackground(String... params) {
+    protected List<NZPostTrackedPackage> doInBackground(String... params) {
         try {
             Log.i(TAG, "Preparing to update codes...");
             return this.service.retrievePackages(Arrays.asList(params));
@@ -43,7 +42,7 @@ public abstract class PackageRetrievalTask extends AsyncTask<String, Void, List<
      * @param trackedPackages The list returned from doInBackground. May be null.
      */
     @Override
-    protected void onPostExecute(List<TrackedPackage> trackedPackages) {
+    protected void onPostExecute(List<NZPostTrackedPackage> trackedPackages) {
         if (error != null) {
             onException(error);
         } else {
@@ -61,5 +60,5 @@ public abstract class PackageRetrievalTask extends AsyncTask<String, Void, List<
      * Called when tracked packages were retrieved successfully.
      * @param retrievedPackages A list of tracked packages returned from the API call.
      */
-    protected abstract void onSuccess(List<TrackedPackage> retrievedPackages);
+    protected abstract void onSuccess(List<NZPostTrackedPackage> retrievedPackages);
 }

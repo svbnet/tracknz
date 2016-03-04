@@ -13,16 +13,16 @@ import android.widget.TextView;
 import java.util.List;
 
 import co.svbnet.tracknz.R;
-import co.svbnet.tracknz.tracking.TrackedPackage;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
 import co.svbnet.tracknz.util.PackageFlagUtil;
 
-public class TrackedPackagesArrayAdapter extends ArrayAdapter<TrackedPackage> {
+public class TrackedPackagesArrayAdapter extends ArrayAdapter<NZPostTrackedPackage> {
 
     private final Context context;
-    private final List<TrackedPackage> items;
+    private final List<NZPostTrackedPackage> items;
 
-    public TrackedPackagesArrayAdapter(Context context, List<TrackedPackage> items) {
+    public TrackedPackagesArrayAdapter(Context context, List<NZPostTrackedPackage> items) {
         super(context, R.layout.item_tracked_package, items);
         this.context = context;
         this.items = items;
@@ -30,7 +30,7 @@ public class TrackedPackagesArrayAdapter extends ArrayAdapter<TrackedPackage> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        TrackedPackage item = items.get(position);
+        NZPostTrackedPackage item = items.get(position);
         LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = convertView;
         if (rowView == null) {

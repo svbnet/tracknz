@@ -28,8 +28,7 @@ import co.svbnet.tracknz.BuildConfig;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.tasks.PackageRetrievalTask;
-import co.svbnet.tracknz.tracking.TrackedPackage;
-import co.svbnet.tracknz.tracking.TrackingService;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.BarcodeScannerUtil;
@@ -288,7 +287,7 @@ public class AddCodeActivity extends ToolbarActivity {
         }
 
         @Override
-        protected void onPostExecute(List<TrackedPackage> trackedPackages) {
+        protected void onPostExecute(List<NZPostTrackedPackage> trackedPackages) {
             progressDialog.hide();
             super.onPostExecute(trackedPackages);
         }
@@ -301,8 +300,8 @@ public class AddCodeActivity extends ToolbarActivity {
         }
 
         @Override
-        protected void onSuccess(List<TrackedPackage> retrievedPackages) {
-            for (final TrackedPackage retrievedPackage : retrievedPackages) {
+        protected void onSuccess(List<NZPostTrackedPackage> retrievedPackages) {
+            for (final NZPostTrackedPackage retrievedPackage : retrievedPackages) {
                 if (retrievedPackage.getErrorCode() != null) {
                     dialogsLeft++;
                     if (retrievedPackage.getErrorCode().equals("N")) {

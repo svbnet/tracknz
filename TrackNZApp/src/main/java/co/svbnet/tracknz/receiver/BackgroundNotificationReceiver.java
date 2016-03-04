@@ -24,8 +24,7 @@ import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.activity.MainActivity;
 import co.svbnet.tracknz.activity.PackageInfoActivity;
 import co.svbnet.tracknz.tasks.PackageUpdateTask;
-import co.svbnet.tracknz.tracking.TrackedPackage;
-import co.svbnet.tracknz.tracking.TrackingService;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.util.PackageFlagUtil;
@@ -64,7 +63,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         return bitmap;
     }
 
-    private Notification buildSingleNotification(Context context, TrackedPackage pkg) {
+    private Notification buildSingleNotification(Context context, NZPostTrackedPackage pkg) {
         // Retrieve latest event
         NZPostTrackingEvent latestEvent = pkg.getLatestEvent();
         // Create the large icon for the notification based on the latest event flag
@@ -94,9 +93,9 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         return notificationBuilder.build();
     }
 
-    private Notification buildMultipleNotification(Context context, List<TrackedPackage> packages) {
+    private Notification buildMultipleNotification(Context context, List<NZPostTrackedPackage> packages) {
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-        for (TrackedPackage item : packages) {
+        for (NZPostTrackedPackage item : packages) {
             inboxStyle.addLine(String.format("%s: %s", item.getTitle(), item.getLatestEvent().getDescription()));
         }
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
@@ -113,7 +112,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         return builder.build();
     }
 
-    private Notification buildNotification(Context context, List<TrackedPackage> packages) {
+    private Notification buildNotification(Context context, List<NZPostTrackedPackage> packages) {
 //        if (packages.size() == 1) {
 //            return buildSingleNotification(context, packages.get(0));
 //        } else {
@@ -130,7 +129,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         }
 
         @Override
-        protected void onPostExecute(List<TrackedPackage> trackedPackages) {
+        protected void onPostExecute(List<NZPostTrackedPackage> trackedPackages) {
             try {
                 super.onPostExecute(trackedPackages);
             } finally {
@@ -139,7 +138,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         }
 
         @Override
-        protected void onPackagesInserted(List<TrackedPackage> updatedPackages) {
+        protected void onPackagesInserted(List<NZPostTrackedPackage> updatedPackages) {
             NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(0, buildNotification(context, updatedPackages));
         }

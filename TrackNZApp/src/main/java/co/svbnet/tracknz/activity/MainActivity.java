@@ -32,8 +32,7 @@ import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.adapter.TrackedPackagesArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.tasks.PackageUpdateTask;
-import co.svbnet.tracknz.tracking.TrackedPackage;
-import co.svbnet.tracknz.tracking.TrackingService;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.MenuItemStateChanger;
 import co.svbnet.tracknz.ui.ToolbarActivity;
@@ -64,7 +63,7 @@ public class MainActivity extends ToolbarActivity {
     // Data references
     private TrackingDB db = new TrackingDB(this);
     private TrackedPackagesArrayAdapter adapter;
-    private List<TrackedPackage> adapterItems = new ArrayList<>();
+    private List<NZPostTrackedPackage> adapterItems = new ArrayList<>();
 
 
     @Override
@@ -370,7 +369,7 @@ public class MainActivity extends ToolbarActivity {
                 case R.id.action_set_label:
                     // "There can only be one" - Gwen Stefani, from Hollaback Girl
                     int itemId = getIndicesOfCheckedItems(listView.getCheckedItemPositions()).get(0);
-                    final TrackedPackage trackedPackage = adapterItems.get(itemId);
+                    final NZPostTrackedPackage trackedPackage = adapterItems.get(itemId);
                     PackageModifyUtil.editLabel(MainActivity.this, db, trackedPackage, new PackageModifyUtil.LabelEditComplete() {
                         @Override
                         public void onLabelEditComplete(String newLabel) {
@@ -397,7 +396,7 @@ public class MainActivity extends ToolbarActivity {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     for (Integer id : delItemIds) {
-                                            TrackedPackage selectedItem = adapterItems.get(id);
+                                            NZPostTrackedPackage selectedItem = adapterItems.get(id);
                                             db.deletePackage(selectedItem.getCode());
                                     }
                                     reloadItems();
@@ -439,7 +438,7 @@ public class MainActivity extends ToolbarActivity {
         }
 
         @Override
-        protected void onPostExecute(List<TrackedPackage> trackedPackages) {
+        protected void onPostExecute(List<NZPostTrackedPackage> trackedPackages) {
             swipeRefreshLayout.setRefreshing(false);
             super.onPostExecute(trackedPackages);
         }
@@ -463,14 +462,14 @@ public class MainActivity extends ToolbarActivity {
         }
 
         @Override
-        protected void onPackagesInserted(List<TrackedPackage> updatedPackages) {
+        protected void onPackagesInserted(List<NZPostTrackedPackage> updatedPackages) {
             reloadItems();
         }
 
         @Override
-        protected void onPackageError(List<TrackedPackage> packagesWithErrors) {
+        protected void onPackageError(List<NZPostTrackedPackage> packagesWithErrors) {
             String packageErrors = "";
-            for (final TrackedPackage item : packagesWithErrors) {
+            for (final NZPostTrackedPackage item : packagesWithErrors) {
                 if (!item.getErrorCode().equals("N")) {
                     String plainMessage = String.format("<b>%s</b>: %s<br />", item.getCode(), item.getDetailedDescription());
                     packageErrors += plainMessage;

@@ -9,12 +9,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import co.svbnet.tracknz.tracking.TrackedPackage;
-
 /**
  * Represents a package in the NZ Post tracking system.
  */
-public class NZPostTrackedPackage implements TrackedPackage<NZPostTrackingEvent>, Parcelable {
+public class NZPostTrackedPackage implements Parcelable {
 
     // This is set after the API response is parsed as a dictionary of code-package objects is returned.
     private String code;
@@ -40,6 +38,9 @@ public class NZPostTrackedPackage implements TrackedPackage<NZPostTrackingEvent>
 
     private boolean hasPendingEvents = false;
 
+    public NZPostTrackedPackage() {
+
+    }
 
     protected NZPostTrackedPackage(Parcel in) {
         code = in.readString();
@@ -96,7 +97,6 @@ public class NZPostTrackedPackage implements TrackedPackage<NZPostTrackingEvent>
      * Gets a list of package events.
      * @return A list of package events, sorted in ascending order.
      */
-    @Override
     public List<NZPostTrackingEvent> getEvents() {
         if (!areEventsSorted && events != null) {
             sortEventsByDate();
@@ -109,7 +109,6 @@ public class NZPostTrackedPackage implements TrackedPackage<NZPostTrackingEvent>
      * Retrieves the most recent event, or null if there are no events. Also sets the package property for the returned event.
      * @return A {@link NZPostTrackingEvent} which can be compared to, or null if none is found.
      */
-    @Override
     public NZPostTrackingEvent getMostRecentEvent() {
         if (!areEventsSorted) {
             sortEventsByDate();
@@ -123,46 +122,38 @@ public class NZPostTrackedPackage implements TrackedPackage<NZPostTrackingEvent>
         return null;
     }
 
-    @Override
     public String getStatus() {
         return shortDescription;
     }
 
-    @Override
     public String getDetailedStatus() {
         return detailedDescription;
     }
 
-    @Override
     public boolean isTracked() {
         return !errorCode.equals("N");
     }
 
-    @Override
     public boolean hasPendingEvents() {
         return hasPendingEvents;
     }
 
-    @Override
     public void setHasPendingEvents(boolean hasPendingEvents) {
         this.hasPendingEvents = hasPendingEvents;
     }
 
-    @Override
     public String getTrackingCode() {
         return code;
     }
 
-    void setTrackingCode(String code) {
+    public void setTrackingCode(String code) {
         this.code = code;
     }
 
-    @Override
     public String getLabel() {
         return label;
     }
 
-    @Override
     public void setLabel(String label) {
         this.label = label;
     }
@@ -171,7 +162,6 @@ public class NZPostTrackedPackage implements TrackedPackage<NZPostTrackingEvent>
         return label == null ? code : label;
     }
 
-    @Override
     public String getSource() {
         return source;
     }
@@ -196,7 +186,27 @@ public class NZPostTrackedPackage implements TrackedPackage<NZPostTrackingEvent>
 
     @Override
     public boolean equals(Object o) {
-        TrackedPackage newPackage = o instanceof TrackedPackage ? (TrackedPackage) o : null;
+        NZPostTrackedPackage newPackage = o instanceof NZPostTrackedPackage ? (NZPostTrackedPackage) o : null;
         return newPackage != null && newPackage.getTrackingCode().equals(code);
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
+    }
+
+    public void setDetailedDescription(String detailedDescription) {
+        this.detailedDescription = detailedDescription;
+    }
+
+    public void setEvents(List<NZPostTrackingEvent> events) {
+        this.events = events;
     }
 }

@@ -7,7 +7,7 @@ import android.widget.EditText;
 
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.data.TrackingDB;
-import co.svbnet.tracknz.tracking.TrackedPackage;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 
 /**
  * Contains utility methods that assist in providing a user interface for common operations like editing
@@ -30,7 +30,7 @@ public class PackageModifyUtil {
      * @param trackedPackage The package to modify.
      * @param callback Called when the OK button on the dialog is pressed and the new label is updated in the database.
      */
-    public static void editLabel(Context context, final TrackingDB db, final TrackedPackage trackedPackage, final LabelEditComplete callback) {
+    public static void editLabel(Context context, final TrackingDB db, final NZPostTrackedPackage trackedPackage, final LabelEditComplete callback) {
         final EditText labelText = new EditText(context);
         labelText.setHint(R.string.hint_no_label);
         labelText.setText(trackedPackage.getLabel() != null ? trackedPackage.getLabel() : "");
