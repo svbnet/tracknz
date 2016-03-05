@@ -42,6 +42,7 @@ public class NZPostTrackedPackage implements Parcelable {
 
     }
 
+    //region Parcelable implementation
     protected NZPostTrackedPackage(Parcel in) {
         code = in.readString();
         label = in.readString();
@@ -49,10 +50,8 @@ public class NZPostTrackedPackage implements Parcelable {
         shortDescription = in.readString();
         detailedDescription = in.readString();
         events = in.createTypedArrayList(NZPostTrackingEvent.CREATOR);
-        errorCode = in.readString();
-        areEventsSorted = in.readByte() != 0;
-        hasPendingEvents = in.readByte() != 0;
     }
+
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
@@ -62,9 +61,6 @@ public class NZPostTrackedPackage implements Parcelable {
         dest.writeString(shortDescription);
         dest.writeString(detailedDescription);
         dest.writeTypedList(events);
-        dest.writeString(errorCode);
-        dest.writeByte((byte) (areEventsSorted ? 1 : 0));
-        dest.writeByte((byte) (hasPendingEvents ? 1 : 0));
     }
 
     @Override
@@ -83,6 +79,7 @@ public class NZPostTrackedPackage implements Parcelable {
             return new NZPostTrackedPackage[size];
         }
     };
+    //endregion
 
     private void sortEventsByDate() {
         Collections.sort(events, new Comparator<NZPostTrackingEvent>() {
@@ -184,6 +181,10 @@ public class NZPostTrackedPackage implements Parcelable {
 //        }
 //    }
 
+
+    public String getErrorCode() {
+        return errorCode;
+    }
     @Override
     public boolean equals(Object o) {
         NZPostTrackedPackage newPackage = o instanceof NZPostTrackedPackage ? (NZPostTrackedPackage) o : null;

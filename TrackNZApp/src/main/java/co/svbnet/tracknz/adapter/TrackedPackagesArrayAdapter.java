@@ -44,12 +44,12 @@ public class TrackedPackagesArrayAdapter extends ArrayAdapter<NZPostTrackedPacka
 
         titleView.setText(item.getTitle());
 
-        if (item.exists()) {
-            NZPostTrackingEvent latestEvent = item.getLatestEvent();
+        if (item.isTracked()) {
+            NZPostTrackingEvent latestEvent = item.getMostRecentEvent();
             statusIcon.setBackgroundResource(PackageFlagUtil.getBackgroundDrawableForFlag(latestEvent.getFlag()));
             statusIcon.setImageResource(PackageFlagUtil.getImageDrawableForFlag(latestEvent.getFlag()));
-            shortDescView.setText(item.getLatestEvent().getDescription());
-            dateView.setText(DateUtils.getRelativeTimeSpanString(context, latestEvent.getDateTime().getTime()));
+            shortDescView.setText(item.getMostRecentEvent().getDescription());
+            dateView.setText(DateUtils.getRelativeTimeSpanString(context, latestEvent.getDate().getTime()));
         } else {
             statusIcon.setBackgroundResource(R.drawable.tracking_status_icon_not_entered);
             statusIcon.setImageResource(R.drawable.ic_status_indeterminate);

@@ -30,16 +30,14 @@ import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.util.PackageFlagUtil;
 
 /**
- * Created by Joe on 3/06/2015.
+ * The app's background refresh and notification receiver.
  */
 public class BackgroundNotificationReceiver extends BroadcastReceiver {
 
     private static final String TAG = "BackgroundReceiver";
     private static final String GROUP_KEY_PACKAGES = "group_key_packages";
 
-    // I SPENT 3 HOURS ON THIS FOR NO REASON BUT IT IS SO GOOD AND I WANT PEOPLE TO SEE IT, LIKE
-    // MY DICK. I REALLY HOPE I REMEMBER TO REMOVE THIS IF I EVER SHARE THIS WITH OTHER PEOPLE. THIS
-    // IS FUCKING RESUME MATERIAL RIGHT HERE BITCHES.
+
     private Bitmap createNotificationLargeIcon(Context context, int flag) {
         Resources contextResources = context.getResources();
         // Our background bitmap we're going to draw on
@@ -48,7 +46,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         // Create canvas based on background bitmap
         Canvas mainCanvas = new Canvas(bitmap);
         // Create background circle, filled with an appropriate colour based on the flag
-        int backgroundColor = contextResources.getColor(PackageFlagUtil.getColorForFlag(flag), null);
+        int backgroundColor = ContextCompat.getColor(context, PackageFlagUtil.getColorForFlag(flag));
         Paint backgroundPaint = new Paint();
         Rect backgroundRect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
         RectF backgroundRectF = new RectF(backgroundRect);
@@ -65,7 +63,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
 
     private Notification buildSingleNotification(Context context, NZPostTrackedPackage pkg) {
         // Retrieve latest event
-        NZPostTrackingEvent latestEvent = pkg.getLatestEvent();
+        NZPostTrackingEvent latestEvent = pkg.getMostRecentEvent();
         // Create the large icon for the notification based on the latest event flag
         Bitmap largeIcon = createNotificationLargeIcon(context, latestEvent.getFlag());
         // Begin building it
@@ -77,7 +75,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
                 .setContentText(latestEvent.getDescription())
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setGroup(GROUP_KEY_PACKAGES)
-                .setWhen(latestEvent.getDateTime().getTime());
+                .setWhen(latestEvent.getDate().getTime());
 
         // Create the intent for the package info activity
         Intent packageInfoIntent = new Intent(context, PackageInfoActivity.class);
@@ -96,7 +94,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
     private Notification buildMultipleNotification(Context context, List<NZPostTrackedPackage> packages) {
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         for (NZPostTrackedPackage item : packages) {
-            inboxStyle.addLine(String.format("%s: %s", item.getTitle(), item.getLatestEvent().getDescription()));
+            inboxStyle.addLine(String.format("%s: %s", item.getTitle(), item.getMostRecentEvent().getDescription()));
         }
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
                 .setNumber(packages.size())
@@ -113,18 +111,16 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
     }
 
     private Notification buildNotification(Context context, List<NZPostTrackedPackage> packages) {
-//        if (packages.size() == 1) {
-//            return buildSingleNotification(context, packages.get(0));
-//        } else {
-//            return buildMultipleNotification(context, packages);
-//        }
-        // buildSingleNotification is buggy
-        return buildMultipleNotification(context, packages);
+        if (packages.size() == 1) {
+            return buildSingleNotification(context, packages.get(0));
+        } else {
+            return buildMultipleNotification(context, packages);
+        }
     }
 
     private class NotificationCheckTask extends PackageUpdateTask {
 
-        public NotificationCheckTask(TrackingService service, Context context) {
+        public NotificationCheckTask(NZPostTrackingService service, Context context) {
             super(service, context, null, null);
         }
 

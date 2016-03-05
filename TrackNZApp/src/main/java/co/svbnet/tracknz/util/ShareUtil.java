@@ -5,6 +5,7 @@ import android.content.Intent;
 
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 
 /**
  * Created by Joe on 2/12/2015.
@@ -22,9 +23,9 @@ public class ShareUtil {
     public static void sharePackageUrl(Activity activity, NZPostTrackedPackage trackedPackage) {
         String shareUrl = "";
         if (trackedPackage.getSource().equals("nz_post")) {
-            shareUrl = String.format(TrackingApi.NZP_URL_FORMAT, trackedPackage.getCode());
+            shareUrl = NZPostTrackingService.getNZPostUrl(trackedPackage.getTrackingCode());
         } else if(trackedPackage.getSource().equals("courier_post")) {
-            shareUrl = String.format(TrackingApi.CP_URL_FORMAT, trackedPackage.getCode());
+            shareUrl = NZPostTrackingService.getCourierPostUrl(trackedPackage.getTrackingCode());
         }
         Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND);

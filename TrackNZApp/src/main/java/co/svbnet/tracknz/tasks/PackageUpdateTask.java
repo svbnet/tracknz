@@ -10,6 +10,7 @@ import java.util.List;
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 
 /**
  * An {@link AsyncTask} that adds and updates packages.
@@ -18,7 +19,7 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
 
     private static final String TAG = PackageUpdateTask.class.getName();
 
-    protected TrackingService service;
+    protected NZPostTrackingService service;
     protected Context context;
     protected TrackingDB db;
     protected List<NZPostTrackedPackage> newPackages;
@@ -32,7 +33,7 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
      * @param dbInstance A previously created DB instance. If null, a new instance will be created from the context supplied.
      * @param newPackages An optional list of new packages to insert into the DB.
      */
-    public PackageUpdateTask(TrackingService service, Context context, TrackingDB dbInstance, List<NZPostTrackedPackage> newPackages) {
+    public PackageUpdateTask(NZPostTrackingService service, Context context, TrackingDB dbInstance, List<NZPostTrackedPackage> newPackages) {
         this.service = service;
         this.context = context;
         this.db = dbInstance == null ? new TrackingDB(context) : dbInstance;
@@ -45,7 +46,7 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
         codesToRetrieve = db.findAllPackageCodes();
         if (newPackages != null) {
             for (NZPostTrackedPackage trackedPackage : newPackages) {
-                codesToRetrieve.add(trackedPackage.getCode());
+                codesToRetrieve.add(trackedPackage.getTrackingCode());
             }
         }
         if (codesToRetrieve.size() == 0) {
@@ -95,8 +96,8 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
             }
 
             // To check if a package has been updated, compare the latest event
-            NZPostTrackingEvent storedEvent = db.findLatestEventForPackage(trackedPackage.getCode());
-            NZPostTrackingEvent recentEvent = trackedPackage.getLatestEvent();
+            NZPostTrackingEvent storedEvent = db.findLatestEventForPackage(trackedPackage.getTrackingCode());
+            NZPostTrackingEvent recentEvent = trackedPackage.getMostRecentEvent();
 
             if ((storedEvent == null && recentEvent != null) || !storedEvent.equals(recentEvent)) {
                 updatedPackages.add(trackedPackage);

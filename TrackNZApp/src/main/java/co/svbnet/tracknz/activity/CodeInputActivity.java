@@ -126,7 +126,7 @@ public class CodeInputActivity extends ToolbarActivity {
 
         private ProgressDialog progressDialog;
 
-        public AddSinglePackageTask(TrackingService service) {
+        public AddSinglePackageTask(NZPostTrackingService service) {
             super(service);
             progressDialog = new ProgressDialog(CodeInputActivity.this);
             progressDialog.setMessage(getString(R.string.message_getting_package_information));
@@ -183,7 +183,7 @@ public class CodeInputActivity extends ToolbarActivity {
                 if (retrievedPackage.getErrorCode().equals("N")) {
                     new AlertDialog.Builder(CodeInputActivity.this)
                             .setTitle(R.string.title_nzp_error)
-                            .setMessage(getString(R.string.message_add_nonexistent_package, retrievedPackage.getCode()))
+                            .setMessage(getString(R.string.message_add_nonexistent_package, retrievedPackage.getTrackingCode()))
                             .setPositiveButton(R.string.dialog_button_yes_add, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -203,7 +203,7 @@ public class CodeInputActivity extends ToolbarActivity {
                 } else {
                     new AlertDialog.Builder(CodeInputActivity.this)
                             .setTitle(R.string.title_nzp_error)
-                            .setMessage(retrievedPackage.getDetailedDescription())
+                            .setMessage(retrievedPackage.getDetailedStatus())
                             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {

@@ -122,12 +122,6 @@ public class SettingsActivity extends ToolbarActivity {
                 });
                 debugCategory.addPreference(testNotificationPreference);
 
-                // API URL
-                Preference apiUrlPreference = new Preference(getActivity());
-                apiUrlPreference.setTitle("API URL");
-                apiUrlPreference.setSummary(TrackingApi.ENDPOINT);
-                debugCategory.addPreference(apiUrlPreference);
-
             }
         }
 

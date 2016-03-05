@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 
 /**
  * Created by Joe on 2/10/2015.
@@ -17,9 +18,9 @@ public abstract class PackageRetrievalTask extends AsyncTask<String, Void, List<
 
     private Exception error;
 
-    private TrackingService service;
+    private NZPostTrackingService service;
 
-    public PackageRetrievalTask(TrackingService service) {
+    public PackageRetrievalTask(NZPostTrackingService service) {
         this.service = service;
     }
 

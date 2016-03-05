@@ -45,7 +45,7 @@ public class PackageModifyUtil {
                             newLabel = null;
                         }
                         trackedPackage.setLabel(newLabel);
-                        db.updatePackageLabel(trackedPackage.getCode(), newLabel);
+                        db.updatePackageLabel(trackedPackage.getTrackingCode(), newLabel);
                         callback.onLabelEditComplete(newLabel);
                         dialog.dismiss();
                     }

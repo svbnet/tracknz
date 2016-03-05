@@ -267,7 +267,7 @@ public class MainActivity extends ToolbarActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            if (adapterItems.get(position).exists()) {
+            if (adapterItems.get(position).isTracked()) {
                 Intent intent = new Intent(MainActivity.this, PackageInfoActivity.class);
                 intent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, adapterItems.get(position));
                 startActivity(intent);
@@ -382,7 +382,7 @@ public class MainActivity extends ToolbarActivity {
                     List<Integer> shareIds = getIndicesOfCheckedItems(listView.getCheckedItemPositions());
                     String codes = "";
                     for (Integer id : shareIds) {
-                            codes += adapterItems.get(id).getCode() + "\n";
+                            codes += adapterItems.get(id).getTrackingCode() + "\n";
                     }
                     ShareUtil.shareCode(MainActivity.this, codes);
                     break;
@@ -397,7 +397,7 @@ public class MainActivity extends ToolbarActivity {
                                 public void onClick(DialogInterface dialog, int which) {
                                     for (Integer id : delItemIds) {
                                             NZPostTrackedPackage selectedItem = adapterItems.get(id);
-                                            db.deletePackage(selectedItem.getCode());
+                                            db.deletePackage(selectedItem.getTrackingCode());
                                     }
                                     reloadItems();
                                     dialog.dismiss();
@@ -427,7 +427,7 @@ public class MainActivity extends ToolbarActivity {
         /**
          * Constructs a new instance of a MainPackageRefreshTask for this activity.
          */
-        public MainPackageRefreshTask(TrackingService service) {
+        public MainPackageRefreshTask(NZPostTrackingService service) {
             super(service, MainActivity.this, MainActivity.this.db, null);
         }
 
@@ -471,7 +471,7 @@ public class MainActivity extends ToolbarActivity {
             String packageErrors = "";
             for (final NZPostTrackedPackage item : packagesWithErrors) {
                 if (!item.getErrorCode().equals("N")) {
-                    String plainMessage = String.format("<b>%s</b>: %s<br />", item.getCode(), item.getDetailedDescription());
+                    String plainMessage = String.format("<b>%s</b>: %s<br />", item.getTrackingCode(), item.getDetailedStatus());
                     packageErrors += plainMessage;
                 }
             }

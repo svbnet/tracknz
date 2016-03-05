@@ -17,6 +17,7 @@ import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.adapter.PackageEventsArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.PackageModifyUtil;
 import co.svbnet.tracknz.util.ShareUtil;
@@ -59,8 +60,19 @@ public class PackageInfoActivity extends ToolbarActivity {
         if (trackedPackage.getLabel() != null) {
             getSupportActionBar().setSubtitle(trackedPackage.getTrackingCode());
         }
-        if (trackedPackage.getSourceTitle() != null) {
-            ((TextView)findViewById(R.id.source)).setText(trackedPackage.getSourceTitle());
+        if (trackedPackage.getSource() != null) {
+            TextView srcTV = ((TextView) findViewById(R.id.source));
+            switch (trackedPackage.getSource().toLowerCase()) {
+                case "nz_post":
+                    srcTV.setText("NZ Post");
+                    break;
+                case "courierpost":
+                    srcTV.setText("CourierPost");
+                    break;
+                default:
+                    srcTV.setText(trackedPackage.getSource());
+                    break;
+            }
         }
         eventsArrayAdapter.notifyDataSetChanged();
     }
@@ -76,7 +88,7 @@ public class PackageInfoActivity extends ToolbarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_share_code:
-                ShareUtil.shareCode(this, trackedPackage.getCode());
+                ShareUtil.shareCode(this, trackedPackage.getTrackingCode());
                 break;
 
             case R.id.action_share_url:
@@ -88,10 +100,10 @@ public class PackageInfoActivity extends ToolbarActivity {
                     @Override
                     public void onLabelEditComplete(String newLabel) {
                         if (newLabel == null) {
-                            setTitle(trackedPackage.getCode());
+                            setTitle(trackedPackage.getTrackingCode());
                         } else {
                             setTitle(newLabel);
-                            getSupportActionBar().setSubtitle(trackedPackage.getCode());
+                            getSupportActionBar().setSubtitle(trackedPackage.getTrackingCode());
                         }
                     }
                 });
@@ -102,14 +114,14 @@ public class PackageInfoActivity extends ToolbarActivity {
                         .setTitle(R.string.title_delete_packages)
                         .setMessage(
                                 trackedPackage.getLabel() == null ?
-                                        getString(R.string.message_delete_package, trackedPackage.getCode()) :
-                                        getString(R.string.message_delete_package_with_label, trackedPackage.getLabel(), trackedPackage.getCode())
+                                        getString(R.string.message_delete_package, trackedPackage.getTrackingCode()) :
+                                        getString(R.string.message_delete_package_with_label, trackedPackage.getLabel(), trackedPackage.getTrackingCode())
                         )
                         .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
-                                db.deletePackage(trackedPackage.getCode());
+                                db.deletePackage(trackedPackage.getTrackingCode());
                                 finish();
                             }
                         })
@@ -124,7 +136,7 @@ public class PackageInfoActivity extends ToolbarActivity {
 
             case R.id.action_copy_code:
                 ClipboardManager clipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText(null, trackedPackage.getCode());
+                ClipData clip = ClipData.newPlainText(null, trackedPackage.getTrackingCode());
                 clipboard.setPrimaryClip(clip);
                 Toast toast = Toast.makeText(this, R.string.toast_copied_successfully, Toast.LENGTH_SHORT);
                 toast.show();
@@ -133,9 +145,9 @@ public class PackageInfoActivity extends ToolbarActivity {
             case R.id.action_open_in_browser:
                 String url = "";
                 if (trackedPackage.getSource().equals("nz_post")) {
-                    url = String.format(TrackingApi.NZP_URL_FORMAT, trackedPackage.getCode());
+                    url = NZPostTrackingService.getNZPostUrl(trackedPackage.getTrackingCode());
                 } else if(trackedPackage.getSource().equals("courier_post")) {
-                    url = String.format(TrackingApi.CP_URL_FORMAT, trackedPackage.getCode());
+                    url = NZPostTrackingService.getCourierPostUrl(trackedPackage.getTrackingCode());
                 }
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
                 break;

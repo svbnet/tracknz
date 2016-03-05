@@ -41,7 +41,7 @@ public class PackageEventsArrayAdapter extends ArrayAdapter<NZPostTrackingEvent>
         TextView descriptionText = (TextView)rowView.findViewById(R.id.description);
         descriptionText.setText(event.getDescription());
         TextView dateText = (TextView)rowView.findViewById(R.id.date);
-        dateText.setText(DateUtils.getRelativeDateTimeString(context, event.getDateTime().getTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE));
+        dateText.setText(DateUtils.getRelativeDateTimeString(context, event.getDate().getTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE));
         statusIcon.setBackgroundResource(PackageFlagUtil.getBackgroundDrawableForFlag(event.getFlag()));
         statusIcon.setImageResource(PackageFlagUtil.getImageDrawableForFlag(event.getFlag()));
         return rowView;
