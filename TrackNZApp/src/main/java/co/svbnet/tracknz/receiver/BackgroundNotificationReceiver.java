@@ -24,10 +24,10 @@ import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.activity.MainActivity;
 import co.svbnet.tracknz.activity.PackageInfoActivity;
 import co.svbnet.tracknz.tasks.PackageUpdateTask;
+import co.svbnet.tracknz.tracking.PackageFlag;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
-import co.svbnet.tracknz.util.PackageFlagUtil;
 
 /**
  * The app's background refresh and notification receiver.
@@ -42,11 +42,11 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         Resources contextResources = context.getResources();
         // Our background bitmap we're going to draw on
         Bitmap bitmap = Bitmap.createBitmap(192, 192, Bitmap.Config.ARGB_8888);
-        Bitmap iconBitmap = BitmapFactory.decodeResource(contextResources, PackageFlagUtil.getImageDrawableForFlag(flag));
+        Bitmap iconBitmap = BitmapFactory.decodeResource(contextResources, PackageFlag.getImageDrawableForFlag(flag));
         // Create canvas based on background bitmap
         Canvas mainCanvas = new Canvas(bitmap);
         // Create background circle, filled with an appropriate colour based on the flag
-        int backgroundColor = ContextCompat.getColor(context, PackageFlagUtil.getColorForFlag(flag));
+        int backgroundColor = ContextCompat.getColor(context, PackageFlag.getColorForFlag(flag));
         Paint backgroundPaint = new Paint();
         Rect backgroundRect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
         RectF backgroundRectF = new RectF(backgroundRect);

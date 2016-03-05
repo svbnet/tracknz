@@ -12,8 +12,8 @@ import android.widget.TextView;
 import java.util.List;
 
 import co.svbnet.tracknz.R;
+import co.svbnet.tracknz.tracking.PackageFlag;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
-import co.svbnet.tracknz.util.PackageFlagUtil;
 
 /**
  * Created by Joe on 12/05/2015.
@@ -42,8 +42,8 @@ public class PackageEventsArrayAdapter extends ArrayAdapter<NZPostTrackingEvent>
         descriptionText.setText(event.getDescription());
         TextView dateText = (TextView)rowView.findViewById(R.id.date);
         dateText.setText(DateUtils.getRelativeDateTimeString(context, event.getDate().getTime(), DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE));
-        statusIcon.setBackgroundResource(PackageFlagUtil.getBackgroundDrawableForFlag(event.getFlag()));
-        statusIcon.setImageResource(PackageFlagUtil.getImageDrawableForFlag(event.getFlag()));
+        statusIcon.setBackgroundResource(PackageFlag.getBackgroundDrawableForFlag(event.getFlag()));
+        statusIcon.setImageResource(PackageFlag.getImageDrawableForFlag(event.getFlag()));
         return rowView;
     }
 }

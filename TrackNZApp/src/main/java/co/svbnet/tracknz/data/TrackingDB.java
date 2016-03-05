@@ -11,7 +11,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.svbnet.tracknz.tracking.TrackingFlag;
+import co.svbnet.tracknz.tracking.PackageFlag;
 import co.svbnet.tracknz.tracking.nzpost.DateFormatUtil;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
@@ -298,7 +298,7 @@ public class TrackingDB implements Closeable {
         Cursor cur = db.query(true,
                 TrackingDBHelper.TBL_TRACKED_PACKAGE_EVENTS,
                 new String[]{"package"},
-                "flag = ?", new String[]{Integer.toString(TrackingFlag.FLAG_DELIVERY_COMPLETE)},
+                "flag = ?", new String[]{Integer.toString(PackageFlag.FLAG_DELIVERY_COMPLETE)},
                 null, null, null, null);
         List<String> codes = new ArrayList<>();
         try {

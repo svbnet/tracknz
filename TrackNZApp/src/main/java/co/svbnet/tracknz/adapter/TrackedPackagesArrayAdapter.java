@@ -13,9 +13,9 @@ import android.widget.TextView;
 import java.util.List;
 
 import co.svbnet.tracknz.R;
+import co.svbnet.tracknz.tracking.PackageFlag;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
-import co.svbnet.tracknz.util.PackageFlagUtil;
 
 public class TrackedPackagesArrayAdapter extends ArrayAdapter<NZPostTrackedPackage> {
 
@@ -46,8 +46,8 @@ public class TrackedPackagesArrayAdapter extends ArrayAdapter<NZPostTrackedPacka
 
         if (item.isTracked()) {
             NZPostTrackingEvent latestEvent = item.getMostRecentEvent();
-            statusIcon.setBackgroundResource(PackageFlagUtil.getBackgroundDrawableForFlag(latestEvent.getFlag()));
-            statusIcon.setImageResource(PackageFlagUtil.getImageDrawableForFlag(latestEvent.getFlag()));
+            statusIcon.setBackgroundResource(PackageFlag.getBackgroundDrawableForFlag(latestEvent.getFlag()));
+            statusIcon.setImageResource(PackageFlag.getImageDrawableForFlag(latestEvent.getFlag()));
             shortDescView.setText(item.getMostRecentEvent().getDescription());
             dateView.setText(DateUtils.getRelativeTimeSpanString(context, latestEvent.getDate().getTime()));
         } else {

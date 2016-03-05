@@ -50,6 +50,7 @@ public class NZPostTrackedPackage implements Parcelable {
         shortDescription = in.readString();
         detailedDescription = in.readString();
         events = in.createTypedArrayList(NZPostTrackingEvent.CREATOR);
+        hasPendingEvents = in.readInt() != 0;
     }
 
 
@@ -61,6 +62,7 @@ public class NZPostTrackedPackage implements Parcelable {
         dest.writeString(shortDescription);
         dest.writeString(detailedDescription);
         dest.writeTypedList(events);
+        dest.writeInt(hasPendingEvents ? 1 : 0);
     }
 
     @Override
@@ -128,7 +130,7 @@ public class NZPostTrackedPackage implements Parcelable {
     }
 
     public boolean isTracked() {
-        return !errorCode.equals("N");
+        return this.events != null && this.events.size() > 0;
     }
 
     public boolean hasPendingEvents() {

@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName;
 import java.text.ParseException;
 import java.util.Date;
 
-import co.svbnet.tracknz.tracking.TrackingFlag;
+import co.svbnet.tracknz.tracking.PackageFlag;
 
 /**
  * Represents an event which has occurred over the lifetime of a tracked package.
@@ -18,7 +18,7 @@ public class NZPostTrackingEvent implements Parcelable {
     private String parentCode;
     @SerializedName("flag")
     private String flagString;
-    private int flagInt = TrackingFlag.FLAG_UNKNOWN;
+    private int flagInt = PackageFlag.FLAG_UNKNOWN;
     @SerializedName("description")
     private String description;
     @SerializedName("datetime")
@@ -40,6 +40,9 @@ public class NZPostTrackingEvent implements Parcelable {
         dest.writeString(parentCode);
         dest.writeInt(flagInt);
         dest.writeString(description);
+        if (dateString == null) {
+            dateString = DateFormatUtil.FORMAT.format(date);
+        }
         dest.writeString(dateString);
     }
 
@@ -69,7 +72,7 @@ public class NZPostTrackingEvent implements Parcelable {
     }
 
     public int getFlag() {
-        if (flagInt == TrackingFlag.FLAG_UNKNOWN && flagString != null && !flagString.isEmpty()) {
+        if (flagInt == PackageFlag.FLAG_UNKNOWN && flagString != null && !flagString.isEmpty()) {
             flagInt = flagString.charAt(0);
             flagString = null;
         }

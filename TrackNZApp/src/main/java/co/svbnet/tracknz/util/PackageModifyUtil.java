@@ -35,7 +35,7 @@ public class PackageModifyUtil {
         labelText.setHint(R.string.hint_no_label);
         labelText.setText(trackedPackage.getLabel() != null ? trackedPackage.getLabel() : "");
         new AlertDialog.Builder(context)
-                .setTitle(context.getString(R.string.title_edit_label, trackedPackage.getCode()))
+                .setTitle(context.getString(R.string.title_edit_label, trackedPackage.getTrackingCode()))
                 .setView(labelText)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override

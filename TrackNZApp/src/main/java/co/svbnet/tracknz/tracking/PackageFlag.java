@@ -1,11 +1,23 @@
-package co.svbnet.tracknz.util;
+package co.svbnet.tracknz.tracking;
+
+import android.support.annotation.IntDef;
 
 import co.svbnet.tracknz.R;
 
 /**
  * Provides drawable resources for event flags
  */
-public class PackageFlagUtil {
+public class PackageFlag {
+
+    public static final int FLAG_UNKNOWN = -1;
+    public static final int FLAG_PICKED_UP = 'A';
+    public static final int FLAG_ITEM_DEPARTED = 'B';
+    public static final int FLAG_ITEM_ARRIVED = 'C';
+    public static final int FLAG_ITEM_HELD_FOR_CLEARANCE = 'D';
+    public static final int FLAG_DELIVERY_COMPLETE = 'F';
+    public static final int FLAG_HANDOVER_DELIVERY = 'K';
+    public static final int FLAG_WITH_COURIER = 'L';
+    public static final int FLAG_OUT_FOR_DELIVERY = 'O';
 
     /**
      * Gets a drawable resource ID for the specified flag.
@@ -73,4 +85,8 @@ public class PackageFlagUtil {
         }
     }
 
+    @IntDef({FLAG_UNKNOWN, FLAG_PICKED_UP, FLAG_ITEM_DEPARTED, FLAG_ITEM_ARRIVED,
+            FLAG_ITEM_HELD_FOR_CLEARANCE, FLAG_DELIVERY_COMPLETE, FLAG_HANDOVER_DELIVERY,
+            FLAG_WITH_COURIER, FLAG_OUT_FOR_DELIVERY})
+    public @interface TrackingFlag {}
 }
