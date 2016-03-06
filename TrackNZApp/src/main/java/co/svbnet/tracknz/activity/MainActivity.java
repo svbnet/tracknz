@@ -77,6 +77,7 @@ public class MainActivity extends ToolbarActivity {
 
     @Override
     protected void onDestroy() {
+        db.close();
         super.onDestroy();
     }
 

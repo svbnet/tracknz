@@ -37,7 +37,7 @@ public class CodeInputActivity extends ToolbarActivity {
     private MenuItem trackItem;
 
     private boolean validate = true;
-    private TrackingDB db;
+    private TrackingDB db = new TrackingDB(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,9 +48,13 @@ public class CodeInputActivity extends ToolbarActivity {
         if (intent.hasExtra(CODE)) {
             code = intent.getStringExtra(CODE);
         }
-        db = new TrackingDB(this);
-        db.open();
         setupUi();
+    }
+
+    @Override
+    protected void onDestroy() {
+        db.close();
+        super.onDestroy();
     }
 
     @Override

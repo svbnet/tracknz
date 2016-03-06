@@ -39,7 +39,7 @@ public class AddCodeActivity extends ToolbarActivity {
     private LinearLayout packageEntryLayout;
     private List<EditText> entryEditTextList = new ArrayList<>();
     private Button addCodeButton;
-    private TrackingDB db;
+    private TrackingDB db = new TrackingDB(this);
     private int dialogsLeft = 0;
 
     private static final int REQUEST_BARCODE = 1;
@@ -49,8 +49,6 @@ public class AddCodeActivity extends ToolbarActivity {
         super.onCreate(savedInstanceState);
         setContentViewAndToolbar(R.layout.activity_add_code);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        db = new TrackingDB(this);
-        db.open();
         if (BuildConfig.DEBUG) {
             Intent intent = getIntent();
             if (!intent.hasExtra("co.svbnet.tracknz.DEBUG_DUMMY_CODES")) {
@@ -61,6 +59,12 @@ public class AddCodeActivity extends ToolbarActivity {
         }
         setupUi();
         addTextViewEntry(null);
+    }
+
+    @Override
+    protected void onDestroy() {
+        db.close();
+        super.onDestroy();
     }
 
     @Override

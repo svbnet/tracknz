@@ -27,7 +27,7 @@ public class PackageInfoActivity extends ToolbarActivity {
 
     public static final String PACKAGE_PARCEL = "PACKAGE_PARCEL";
     private NZPostTrackedPackage trackedPackage;
-    private TrackingDB db;
+    private TrackingDB db = new TrackingDB(this);
 
     private TextView detailedDescription;
 
@@ -39,11 +39,16 @@ public class PackageInfoActivity extends ToolbarActivity {
         setContentViewAndToolbar(R.layout.activity_package_info);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         trackedPackage = getIntent().getParcelableExtra(PACKAGE_PARCEL);
-        db = new TrackingDB(this);
         if (trackedPackage.hasPendingEvents()) {
             db.clearPendingEvents(trackedPackage.getTrackingCode());
         }
         setupUi();
+    }
+
+    @Override
+    protected void onDestroy() {
+        db.close();
+        super.onDestroy();
     }
 
     private void setupUi() {

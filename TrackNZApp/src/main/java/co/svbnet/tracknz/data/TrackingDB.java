@@ -43,12 +43,13 @@ public class TrackingDB implements Closeable {
     }
 
     /**
-     * Closes the connection to the database
+     * Closes the connection to the database, if one exists
      */
     public void close() {
-        db.close();
-        Log.i(TAG, "DB connection closed");
-
+        if (db != null) {
+            db.close();
+            Log.i(TAG, "DB connection closed");
+        }
     }
 
     private void openIfNotOpened() {
