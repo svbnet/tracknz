@@ -14,7 +14,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
@@ -36,7 +35,6 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
 
     private static final String TAG = "BackgroundReceiver";
     private static final String GROUP_KEY_PACKAGES = "group_key_packages";
-
 
     private Bitmap createNotificationLargeIcon(Context context, int flag) {
         Resources contextResources = context.getResources();
@@ -80,27 +78,33 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         // Create the intent for the package info activity
         Intent packageInfoIntent = new Intent(context, PackageInfoActivity.class);
         packageInfoIntent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, pkg);
-        // Create a navigation stack
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        stackBuilder.addParentStack(PackageInfoActivity.class);
-        stackBuilder.addNextIntent(packageInfoIntent);
-        // Get the pending intent from the stack
-        PendingIntent packageInfoPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_ONE_SHOT);
-        notificationBuilder.setContentIntent(packageInfoPendingIntent);
+        notificationBuilder.setContentIntent(PendingIntent.getActivity(context, 0, packageInfoIntent, PendingIntent.FLAG_ONE_SHOT));
         // Build notification and return
         return notificationBuilder.build();
     }
 
     private Notification buildMultipleNotification(Context context, List<NZPostTrackedPackage> packages) {
+        // Inbox style is presented as a list of items which is revealed when the user pulls down
+        // on the notification
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         for (NZPostTrackedPackage item : packages) {
             inboxStyle.addLine(String.format("%s: %s", item.getTitle(), item.getMostRecentEvent().getDescription()));
         }
+        // Set content text depending on events size
+        String contentText;
+        if (packages.size() == 2) {
+            contentText = context.getString(R.string.notif_text_packages_two,
+                    packages.get(0).getTitle(), packages.get(1).getTitle());
+        } else {
+            contentText = context.getString(R.string.notif_text_packages_more,
+                    packages.get(0).getTitle(), packages.get(1).getTitle(), packages.size() - 2);
+        }
+        // Build notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
                 .setNumber(packages.size())
                 .setSmallIcon(R.drawable.ic_stat_notification_logo)
                 .setContentTitle(context.getString(R.string.app_name))
-                .setContentText(context.getString(R.string.notif_text_packages))
+                .setContentText(contentText)
                 .setAutoCancel(true)
                 .setContentIntent(PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_ONE_SHOT))
                 .setStyle(inboxStyle)

@@ -16,7 +16,7 @@
     <string name="action_about">About</string>
     <string name="action_share_code">Share code</string>
     <string name="action_share_url">Share URL</string>
-    <string name="action_validated_input">Validate input</string>
+    <string name="action_validated_input">CourierPost code</string>
 
     <!-- Activity and dialog titles -->
     <string name="title_activity_main">Tracked packages</string>
@@ -44,14 +44,14 @@
     <string name="message_unknown_error" formatted="false">An unknown error occurred while retrieving package status. (%s: %s)</string>
     <string name="message_package_error_preamble">An error occurred while updating one or more packages:<br/><br/>%s</string>
     <string name="message_getting_package_information">Retrieving package information…</string>
-    <string name="message_delete_packages">Are you sure you want to delete %d packages?</string>
-    <string name="message_delete_package">Are you sure you want to delete package <b>%s</b>?</string>
-    <string name="message_delete_package_with_label">Are you sure you want to delete package <s>%s</s> (code: %s)?</string>
+    <string name="message_delete_packages">%s<br/><br/>Are you sure you want to delete these packages?</string>
+    <string name="message_delete_package">Are you sure you want to delete package: <b>%s</b>?</string>
+    <string name="message_delete_package_with_label">Are you sure you want to delete package <s>%s</s> (%s)?</string>
     <string name="message_error_no_connection">Cannot connect to the NZ Post server. Please make sure you are connected to the Internet. This could also be an error with the NZ Post website.</string>
     <string name="message_zxing_not_installed">To scan packages, the app Barcode Scanner must be installed.</string>
     <string name="message_zxing_error">An error occurred while acquiring barcode.</string>
     <string name="message_nzp_api_error">The NZ Post server is currently experiencing difficulties. Please try again soon.</string>
-    <string name="message_add_nonexistent_package">The package <b>%s</b> is valid, but does not exist in the NZ Post tracking system. Would you like to add it anyway?</string>
+    <string name="message_add_nonexistent_package">The package <b>%s</b> does not currently exist in the NZ Post tracking system. Would you like to add it anyway?</string>
 
     <!-- Dialog button labels -->
     <string name="dialog_button_delete">Delete</string>
@@ -99,7 +99,8 @@
     <string name="interval_hour">1 hour</string>
     <string name="interval_half_day">12 hours</string>
     <string name="interval_day">1 day</string>
-    <string name="notif_text_packages">Packages have changed status</string>
+    <string name="notif_text_packages_two" formatted="false">%s and %s have changed status.</string>
+    <string name="notif_text_packages_more" formatted="false">%s, %s and %d more have changed status.</string>
     <string name="package_doesnt_exist">Not yet received</string>
     <string name="package_doesnt_exist_toast">This package has not been received by NZ Post yet.</string>
     <string name="no_tracked_items">No packages here.</string>

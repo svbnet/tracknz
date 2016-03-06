@@ -8,14 +8,14 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.widget.Toast;
 
+import co.svbnet.tracknz.BackgroundRefreshManager;
 import co.svbnet.tracknz.BuildConfig;
 import co.svbnet.tracknz.R;
-import co.svbnet.tracknz.TrackNZApplication;
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 
 /**
- * Created by Joe on 14/05/2015.
+ * Activity which enables the user to edit the app's preferences.
  */
 public class SettingsActivity extends ToolbarActivity {
 
@@ -145,12 +145,7 @@ public class SettingsActivity extends ToolbarActivity {
 //                        sharedPreferences.edit().putString("notifications_interval", "900000").apply();
 //                    }
                 case "notifications_interval":
-                    TrackNZApplication app = (TrackNZApplication)getActivity().getApplication();
-                    if (sharedPreferences.getBoolean("notifications_enabled", false)) {
-                        app.enableBackgroundRefresh(sharedPreferences);
-                    } else {
-                        app.disableBackgroundRefresh();
-                    }
+                    new BackgroundRefreshManager(getActivity()).setFromPreferences(sharedPreferences);
                     break;
             }
         }

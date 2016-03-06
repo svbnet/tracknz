@@ -38,16 +38,17 @@ public class TrackingDB implements Closeable {
      * Opens a connection to the database
      */
     public void open() {
-        Log.i(TAG, "New DB connection opened");
         db = dbHelper.getWritableDatabase();
+        Log.i(TAG, "New DB connection opened");
     }
 
     /**
      * Closes the connection to the database
      */
     public void close() {
-        Log.i(TAG, "DB connection closed");
         db.close();
+        Log.i(TAG, "DB connection closed");
+
     }
 
     private void openIfNotOpened() {
