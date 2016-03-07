@@ -130,7 +130,7 @@ public class AddCodeActivity extends ToolbarActivity {
         final EditText editEntry = new EditText(this);
         editEntry.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         editEntry.setHint(R.string.hint_enter_a_code);
-        editEntry.setFilters(new InputFilter[]{new InputFilter.AllCaps(), new InputFilter.LengthFilter(CodeValidationUtil.LENGTH)});
+        editEntry.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
         if (code != null) {
             editEntry.append(code);
         }
@@ -150,7 +150,7 @@ public class AddCodeActivity extends ToolbarActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (s.length() == CodeValidationUtil.LENGTH && !CodeValidationUtil.isValidCode(s.toString())) {
+                if (!CodeValidationUtil.isValidCode(s.toString())) {
                     editEntry.setError(getString(R.string.error_code_invalid));
                 }
                 // If the user has cleared all text and that EditText isn't the only one

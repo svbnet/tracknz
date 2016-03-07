@@ -4,9 +4,4 @@
     <item android:id="@+id/action_track"
         android:title="@string/action_track"
         app:showAsAction="always" />
-    <item android:id="@+id/action_validated_input"
-        android:title="@string/action_validated_input"
-        app:showAsAction="never"
-        android:checkable="true"
-        android:checked="true" />
 </menu>

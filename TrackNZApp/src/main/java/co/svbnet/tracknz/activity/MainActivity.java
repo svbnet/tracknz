@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
@@ -27,7 +26,6 @@ import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.svbnet.tracknz.PreferenceKeys;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.adapter.TrackedPackagesArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
@@ -136,7 +134,6 @@ public class MainActivity extends ToolbarActivity {
 
     @Override
     protected void onResume() {
-        db.open();
         super.onResume();
         reloadItems();
         checkIfCodeIsOnClipboard();
@@ -202,15 +199,7 @@ public class MainActivity extends ToolbarActivity {
         findViewById(R.id.fab_enter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent;
-                if (PreferenceManager.getDefaultSharedPreferences(MainActivity.this)
-                        .getBoolean(PreferenceKeys.USE_MULTIPLE_INSERT, false)) {
-                    intent = new Intent(MainActivity.this, AddCodeActivity.class);
-                    startActivityForResult(intent, REQUEST_TRACKING_CODES);
-                } else {
-                    intent = new Intent(MainActivity.this, CodeInputActivity.class);
-                    startActivity(intent);
-                }
+                startActivity(new Intent(MainActivity.this, CodeInputActivity.class));
                 addFloatingButton.collapse();
             }
         });

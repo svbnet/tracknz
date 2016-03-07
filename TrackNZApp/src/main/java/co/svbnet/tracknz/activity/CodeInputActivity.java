@@ -36,7 +36,6 @@ public class CodeInputActivity extends ToolbarActivity {
     private CheckBox notificationsCheck;
     private MenuItem trackItem;
 
-    private boolean validate = true;
     private TrackingDB db = new TrackingDB(this);
 
     @Override
@@ -69,7 +68,7 @@ public class CodeInputActivity extends ToolbarActivity {
     private void setupUi() {
         codeText = (EditText)findViewById(R.id.code);
         codeText.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
-        codeText.setFilters(new InputFilter[]{new InputFilter.AllCaps(), new InputFilter.LengthFilter(CodeValidationUtil.LENGTH)});
+        codeText.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
         codeText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -83,15 +82,11 @@ public class CodeInputActivity extends ToolbarActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (validate) {
-                    if (s.length() < CodeValidationUtil.LENGTH) {
-                        if (trackItem != null) trackItem.setEnabled(false);
-                    } else if (s.length() == CodeValidationUtil.LENGTH && !CodeValidationUtil.isValidCode(s.toString())) {
-                        codeText.setError(getString(R.string.error_code_invalid));
-                        if (trackItem != null) trackItem.setEnabled(false);
-                    } else {
-                        if (trackItem != null) trackItem.setEnabled(true);
-                    }
+                if (!CodeValidationUtil.isValidCode(s.toString())) {
+                    codeText.setError(getString(R.string.error_code_invalid));
+                    if (trackItem != null) trackItem.setEnabled(false);
+                } else {
+                    if (trackItem != null) trackItem.setEnabled(true);
                 }
             }
         });
@@ -112,16 +107,6 @@ public class CodeInputActivity extends ToolbarActivity {
                 new AddSinglePackageTask(new NZPostTrackingService()).execute(codeText.getText().toString());
                 break;
 
-            case R.id.action_validated_input:
-                validate = !validate;
-                item.setChecked(validate);
-                if (validate) {
-                    codeText.setFilters(new InputFilter[]{new InputFilter.AllCaps(), new InputFilter.LengthFilter(CodeValidationUtil.LENGTH)});
-                } else {
-                    trackItem.setEnabled(true);
-                    codeText.setFilters(new InputFilter[]{new InputFilter.AllCaps()});
-                }
-                break;
         }
         return true;
     }
