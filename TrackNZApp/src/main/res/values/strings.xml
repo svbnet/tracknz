@@ -80,9 +80,12 @@
 
     <!-- Preferences -->
     <string name="preference_notifications">Enable notifications</string>
+    <string name="preference_summary_notifications">Packages are refreshed approximately every 15 minutes in the background. Due to your device and/or NZ Post, some notifications may be delayed.</string>
     <string name="preference_notification_interval">Refresh interval</string>
     <string name="preference_use_multiple_insert">Enable bulk add mode</string>
     <string name="preference_share_delimiter">Multiple code separator</string>
+    <string name="preference_vibration">Vibration</string>
+    <string name="preference_sound">Sound</string>
 
     <!-- Misc. strings -->
     <string name="actionmode_selected">%d selected</string>
@@ -107,4 +110,5 @@
     <string name="instr_add">Press the + button to enter, scan or paste a code to track.</string>
     <string name="error_code_invalid">Invalid code</string>
     <string name="error_code_scanned_invalid"><b>%s</b>: The code scanned is invalid.</string>
+    <string name="preference_light">Blink LED</string>
 </resources>

@@ -16,6 +16,7 @@ public class BackgroundRefreshManager {
     private static PendingIntent alarmPendingIntent;
 
     public static final String INTENT_START_ALARM = "co.svbnet.tracknz.START_ALARM";
+    public static final long REFRESH_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES;
     private static final String TAG = "BackgroundRefreshManager";
 
     private Context ctx;
@@ -25,8 +26,6 @@ public class BackgroundRefreshManager {
     }
 
     public void enableBackgroundRefresh(SharedPreferences preferences) {
-        long interval = Long.parseLong(preferences.getString(PreferenceKeys.NOTIFICATIONS_INTERVAL, "-1"));
-        if (interval == -1) interval = AlarmManager.INTERVAL_HALF_HOUR;
         if (alarmPendingIntent == null) {
             Intent alarmIntent = new Intent(INTENT_START_ALARM);
             alarmPendingIntent = PendingIntent.getBroadcast(ctx, 0, alarmIntent, 0);
@@ -34,9 +33,8 @@ public class BackgroundRefreshManager {
             disableBackgroundRefresh();
         }
         AlarmManager alarmManager = (AlarmManager)ctx.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, 0, interval, alarmPendingIntent);
+        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, 0, REFRESH_INTERVAL, alarmPendingIntent);
         Log.i(TAG, "Background refresh is enabled");
-        Log.d(TAG, "Interval is " + interval);
     }
 
     public void disableBackgroundRefresh() {
@@ -49,7 +47,7 @@ public class BackgroundRefreshManager {
 
     /**
      * Enables or disables background refresh based on the {@link PreferenceKeys#NOTIFICATIONS_ENABLED} preference.
-     * @param pm The preference manager to use. Pass null to use the default shared preferences.
+     * @param sp The preference manager to use. Pass null to use the default shared preferences.
      */
     public void setFromPreferences(SharedPreferences sp) {
         SharedPreferences preferences = sp == null

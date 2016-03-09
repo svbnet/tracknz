@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,7 +18,9 @@ import android.widget.Toast;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.adapter.PackageEventsArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
+import co.svbnet.tracknz.tracking.PackageFlag;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.PackageModifyUtil;
@@ -30,6 +34,8 @@ public class PackageInfoActivity extends ToolbarActivity {
     private TrackingDB db = new TrackingDB(this);
 
     private TextView detailedDescription;
+    private TextView labelLabel;
+    private ImageView statusIcon;
 
     private PackageEventsArrayAdapter eventsArrayAdapter;
 
@@ -53,6 +59,8 @@ public class PackageInfoActivity extends ToolbarActivity {
 
     private void setupUi() {
         detailedDescription = (TextView)findViewById(R.id.detailed_description);
+        labelLabel = (TextView)findViewById(R.id.label);
+        statusIcon = (ImageView)findViewById(R.id.status_icon);
         ListView eventsListView = (ListView) findViewById(R.id.events_list);
         eventsArrayAdapter = new PackageEventsArrayAdapter(this, trackedPackage.getEvents());
         eventsListView.setAdapter(eventsArrayAdapter);
@@ -62,8 +70,14 @@ public class PackageInfoActivity extends ToolbarActivity {
     private void refreshUI() {
         setTitle(trackedPackage.getTitle());
         detailedDescription.setText(trackedPackage.getDetailedStatus());
+        NZPostTrackingEvent latestEvent = trackedPackage.getMostRecentEvent();
+        statusIcon.setImageResource(PackageFlag.getImageDrawableForFlag(latestEvent.getFlag()));
+        statusIcon.setBackgroundResource(PackageFlag.getBackgroundDrawableForFlag(latestEvent.getFlag()));
         if (trackedPackage.getLabel() != null) {
-            getSupportActionBar().setSubtitle(trackedPackage.getTrackingCode());
+            labelLabel.setVisibility(View.VISIBLE);
+            labelLabel.setText(trackedPackage.getTrackingCode());
+        } else {
+            labelLabel.setVisibility(View.GONE);
         }
         if (trackedPackage.getSource() != null) {
             TextView srcTV = ((TextView) findViewById(R.id.source));

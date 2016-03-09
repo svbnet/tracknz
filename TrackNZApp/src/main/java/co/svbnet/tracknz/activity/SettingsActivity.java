@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import co.svbnet.tracknz.BackgroundRefreshManager;
 import co.svbnet.tracknz.BuildConfig;
+import co.svbnet.tracknz.PreferenceKeys;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.ui.ToolbarActivity;
@@ -115,7 +116,7 @@ public class SettingsActivity extends ToolbarActivity {
                 testNotificationPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference preference) {
-                        Intent alarmIntent = new Intent("co.svbnet.tracknz.START_ALARM");
+                        Intent alarmIntent = new Intent(BackgroundRefreshManager.INTENT_START_ALARM);
                         getActivity().getApplication().sendBroadcast(alarmIntent);
                         return true;
                     }
@@ -140,11 +141,7 @@ public class SettingsActivity extends ToolbarActivity {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             switch (key) {
-                case "notifications_enabled":
-//                    if (sharedPreferences.getString("notifications_interval", null) == null) {
-//                        sharedPreferences.edit().putString("notifications_interval", "900000").apply();
-//                    }
-                case "notifications_interval":
+                case PreferenceKeys.NOTIFICATIONS_ENABLED:
                     new BackgroundRefreshManager(getActivity()).setFromPreferences(sharedPreferences);
                     break;
             }

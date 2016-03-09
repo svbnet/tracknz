@@ -1,25 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory
-        android:title="@string/title_preference_general">
-        <SwitchPreference
-            android:key="use_multiple_insert"
-            android:defaultValue="false"
-            android:title="@string/preference_use_multiple_insert" />
-    </PreferenceCategory>
+    <!--<PreferenceCategory-->
+        <!--android:title="@string/title_preference_general">-->
+        <!--<SwitchPreference-->
+            <!--android:key="use_multiple_insert"-->
+            <!--android:defaultValue="false"-->
+            <!--android:title="@string/preference_use_multiple_insert" />-->
+    <!--</PreferenceCategory>-->
     <PreferenceCategory
         android:title="@string/title_background_refresh">
         <SwitchPreference
             android:key="notifications_enabled"
-            android:defaultValue="false"
+            android:defaultValue="true"
+            android:summary="@string/preference_summary_notifications"
             android:title="@string/preference_notifications" />
-        <ListPreference
-            android:key="notifications_interval"
-            android:dependency="notifications_enabled"
-            android:summary="%s"
-            android:defaultValue="900000"
-            android:title="@string/preference_notification_interval"
-            android:entries="@array/background_duration_names"
-            android:entryValues="@array/background_duration_values" />
+        <SwitchPreference
+            android:key="notifications_vibrate"
+            android:defaultValue="true"
+            android:title="@string/preference_vibration" />
+        <SwitchPreference
+            android:key="notifications_sound"
+            android:defaultValue="true"
+            android:title="@string/preference_sound" />
+        <SwitchPreference
+            android:key="notifications_light"
+            android:defaultValue="true"
+            android:title="@string/preference_light" />
+        <!--<ListPreference-->
+            <!--android:key="notifications_interval"-->
+            <!--android:dependency="notifications_enabled"-->
+            <!--android:summary="%s"-->
+            <!--android:defaultValue="900000"-->
+            <!--android:title="@string/preference_notification_interval"-->
+            <!--android:entries="@array/background_duration_names"-->
+            <!--android:entryValues="@array/background_duration_values" />-->
     </PreferenceCategory>
 </PreferenceScreen>
