@@ -45,8 +45,8 @@
     <string name="message_package_error_preamble">An error occurred while updating one or more packages:<br/><br/>%s</string>
     <string name="message_getting_package_information">Retrieving package information…</string>
     <string name="message_delete_packages">%s<br/><br/>Are you sure you want to delete these packages?</string>
-    <string name="message_delete_package">Are you sure you want to delete package: <b>%s</b>?</string>
-    <string name="message_delete_package_with_label">Are you sure you want to delete package <s>%s</s> (%s)?</string>
+    <string name="message_delete_package">Are you sure you want to delete package %s?</string>
+    <string name="message_delete_package_with_label">Are you sure you want to delete package <b>%s</b> (%s)?</string>
     <string name="message_error_no_connection">Cannot connect to the NZ Post server. Please make sure you are connected to the Internet. This could also be an error with the NZ Post website.</string>
     <string name="message_zxing_not_installed">To scan packages, the app Barcode Scanner must be installed.</string>
     <string name="message_zxing_error">An error occurred while acquiring barcode.</string>

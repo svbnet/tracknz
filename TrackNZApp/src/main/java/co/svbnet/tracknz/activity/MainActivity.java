@@ -62,6 +62,8 @@ public class MainActivity extends ToolbarActivity {
     private TrackedPackagesArrayAdapter adapter;
     private List<NZPostTrackedPackage> adapterItems = new ArrayList<>();
 
+    // Refresh task reference
+    private MainPackageRefreshTask refreshTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +94,8 @@ public class MainActivity extends ToolbarActivity {
         switch (item.getItemId()) {
             case R.id.action_refresh:
                 swipeRefreshLayout.setRefreshing(true);
-                new MainPackageRefreshTask(new NZPostTrackingService()).execute();
+                refreshTask = new MainPackageRefreshTask(new NZPostTrackingService());
+                refreshTask.execute();
                 break;
 
             case R.id.action_settings:
@@ -250,7 +253,8 @@ public class MainActivity extends ToolbarActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new MainPackageRefreshTask(new NZPostTrackingService()).execute();
+                refreshTask = new MainPackageRefreshTask(new NZPostTrackingService());
+                refreshTask.execute();
             }
         });
 
@@ -345,6 +349,12 @@ public class MainActivity extends ToolbarActivity {
             misc.assign(menu);
             // Hide FAB when in CAB mode
             addFloatingButton.setVisibility(View.GONE);
+            // Stop refreshing
+            if (refreshTask != null) {
+                refreshTask.cancel(true);
+                swipeRefreshLayout.setRefreshing(false);
+
+            }
             return true;
         }
 
@@ -379,15 +389,40 @@ public class MainActivity extends ToolbarActivity {
 
                 case R.id.action_delete:
                     final List<Integer> delItemIds = getIndicesOfCheckedItems(listView.getCheckedItemPositions());
+                    final List<NZPostTrackedPackage> packagesToDelete = new ArrayList<>();
+                    StringBuilder sb = new StringBuilder();
+                    for (Integer id : delItemIds) {
+                        NZPostTrackedPackage selectedItem = adapterItems.get(id);
+                        packagesToDelete.add(selectedItem);
+                        sb.append("<b>");
+                        if (selectedItem.getLabel() == null) {
+                            sb.append(selectedItem.getTrackingCode());
+                            sb.append("</b>");
+                        } else {
+                            sb.append(selectedItem.getLabel());
+                            sb.append("</b>");
+                            sb.append(" (");
+                            sb.append(selectedItem.getTrackingCode());
+                            sb.append(")");
+                        }
+                        sb.append("<br>");
+                    }
+                    sb.append("<br>");
+                    int itemsSize = delItemIds.size();
+                    String msg;
+                    if (itemsSize == 1) {
+                        msg = MainActivity.this.getString(R.string.message_delete_package, sb.toString()).replace("<br>", "");
+                    } else {
+                        msg = MainActivity.this.getString(R.string.message_delete_packages, sb.toString());
+                    }
                     new AlertDialog.Builder(MainActivity.this)
                             .setTitle(R.string.title_delete_packages)
-                            .setMessage(MainActivity.this.getString(R.string.message_delete_packages, delItemIds.size()))
+                            .setMessage(Html.fromHtml(msg))
                             .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    for (Integer id : delItemIds) {
-                                            NZPostTrackedPackage selectedItem = adapterItems.get(id);
-                                            db.deletePackage(selectedItem.getTrackingCode());
+                                    for (NZPostTrackedPackage id : packagesToDelete) {
+                                            db.deletePackage(id.getTrackingCode());
                                     }
                                     reloadItems();
                                     dialog.dismiss();
@@ -431,6 +466,12 @@ public class MainActivity extends ToolbarActivity {
         protected void onPostExecute(List<NZPostTrackedPackage> trackedPackages) {
             swipeRefreshLayout.setRefreshing(false);
             super.onPostExecute(trackedPackages);
+        }
+
+        @Override
+        protected void onCancelled(List<NZPostTrackedPackage> trackedPackages) {
+            swipeRefreshLayout.setRefreshing(false);
+            super.onCancelled(trackedPackages);
         }
 
         @Override

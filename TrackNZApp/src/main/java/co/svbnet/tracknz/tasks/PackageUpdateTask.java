@@ -115,12 +115,6 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
 
     }
 
-    @Override
-    protected void onCancelled(List<NZPostTrackedPackage> trackedPackages) {
-        super.onCancelled(trackedPackages);
-        db.close();
-    }
-
     /**
      * Invoked when an exception was thrown while retrieving packages.
      * @param error The thrown exception.
