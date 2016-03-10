@@ -17,7 +17,6 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
@@ -262,13 +261,9 @@ public class MainActivity extends ToolbarActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            if (adapterItems.get(position).isTracked()) {
-                Intent intent = new Intent(MainActivity.this, PackageInfoActivity.class);
-                intent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, adapterItems.get(position));
-                startActivity(intent);
-            } else {
-                Toast.makeText(MainActivity.this, R.string.package_doesnt_exist_toast, Toast.LENGTH_SHORT).show();
-            }
+            Intent intent = new Intent(MainActivity.this, PackageInfoActivity.class);
+            intent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, adapterItems.get(position));
+            startActivity(intent);
             }
         });
         listView.setMultiChoiceModeListener(new PackagesMultiChoiceListener());

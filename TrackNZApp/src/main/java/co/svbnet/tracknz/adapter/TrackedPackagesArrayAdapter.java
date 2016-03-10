@@ -52,7 +52,7 @@ public class TrackedPackagesArrayAdapter extends ArrayAdapter<NZPostTrackedPacka
             dateView.setText(DateUtils.getRelativeTimeSpanString(context, latestEvent.getDate().getTime()));
         } else {
             statusIcon.setBackgroundResource(R.drawable.tracking_status_icon_not_entered);
-            statusIcon.setImageResource(R.drawable.ic_status_indeterminate);
+            statusIcon.setImageResource(R.drawable.ic_not_found);
             shortDescView.setText(R.string.package_doesnt_exist);
         }
 

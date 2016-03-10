@@ -65,7 +65,7 @@ public class TrackingDB implements Closeable {
         ContentValues values = createValuesForPackage(package_);
         db.insertOrThrow(TrackingDBHelper.TBL_TRACKED_PACKAGES, null, values);
         Log.d(TAG, "insertPackage: " + package_.getTrackingCode());
-        if(package_.getEvents().size() > 0) {
+        if(package_.getEvents() != null && package_.getEvents().size() > 0) {
             insertEvents(package_.getTrackingCode(), package_.getEvents());
         }
     }

@@ -69,31 +69,39 @@ public class PackageInfoActivity extends ToolbarActivity {
 
     private void refreshUI() {
         setTitle(trackedPackage.getTitle());
-        detailedDescription.setText(trackedPackage.getDetailedStatus());
-        NZPostTrackingEvent latestEvent = trackedPackage.getMostRecentEvent();
-        statusIcon.setImageResource(PackageFlag.getImageDrawableForFlag(latestEvent.getFlag()));
-        statusIcon.setBackgroundResource(PackageFlag.getBackgroundDrawableForFlag(latestEvent.getFlag()));
         if (trackedPackage.getLabel() != null) {
             labelLabel.setVisibility(View.VISIBLE);
             labelLabel.setText(trackedPackage.getTrackingCode());
         } else {
             labelLabel.setVisibility(View.GONE);
         }
-        if (trackedPackage.getSource() != null) {
-            TextView srcTV = ((TextView) findViewById(R.id.source));
-            switch (trackedPackage.getSource().toLowerCase()) {
-                case "nz_post":
-                    srcTV.setText("NZ Post");
-                    break;
-                case "courierpost":
-                    srcTV.setText("CourierPost");
-                    break;
-                default:
-                    srcTV.setText(trackedPackage.getSource());
-                    break;
+        if (trackedPackage.isTracked()) {
+            detailedDescription.setText(trackedPackage.getDetailedStatus());
+            NZPostTrackingEvent latestEvent = trackedPackage.getMostRecentEvent();
+            statusIcon.setImageResource(PackageFlag.getImageDrawableForFlag(latestEvent.getFlag()));
+            statusIcon.setBackgroundResource(PackageFlag.getBackgroundDrawableForFlag(latestEvent.getFlag()));
+            if (trackedPackage.getSource() != null) {
+                TextView srcTV = ((TextView) findViewById(R.id.source));
+                switch (trackedPackage.getSource().toLowerCase()) {
+                    case "nz_post":
+                        srcTV.setText("NZ Post");
+                        break;
+                    case "courierpost":
+                        srcTV.setText("CourierPost");
+                        break;
+                    default:
+                        srcTV.setText(trackedPackage.getSource());
+                        break;
+                }
             }
+            eventsArrayAdapter.notifyDataSetChanged();
+        } else {
+            statusIcon.setBackgroundResource(R.drawable.tracking_status_icon_not_entered);
+            statusIcon.setImageResource(R.drawable.ic_not_found);
+            detailedDescription.setText(R.string.package_doesnt_exist_toast);
+
         }
-        eventsArrayAdapter.notifyDataSetChanged();
+
     }
 
     @Override
