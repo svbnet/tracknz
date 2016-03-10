@@ -117,6 +117,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
                 .setAutoCancel(true)
                 .setSmallIcon(R.drawable.ic_stat_notification_logo)
+                .setColor(ContextCompat.getColor(context, R.color.primary))
                 .setGroup(GROUP_KEY_PACKAGES);
 
         // Apply notification alert preferences

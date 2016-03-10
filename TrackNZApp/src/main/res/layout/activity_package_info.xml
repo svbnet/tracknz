@@ -19,42 +19,39 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp">
 
-        <LinearLayout
+        <RelativeLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp">
 
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="10dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                tools:src="@drawable/ic_status_complete"
+                tools:background="@drawable/tracking_status_icon_done"
+                android:id="@+id/status_icon"
+                android:padding="5dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginEnd="10dp"/>
 
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    tools:src="@drawable/ic_status_complete"
-                    tools:background="@drawable/tracking_status_icon_done"
-                    android:id="@+id/status_icon"
-                    android:padding="5dp"
-                    android:layout_marginRight="10dp"
-                    android:layout_marginEnd="10dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="Detailed description"
-                    android:id="@+id/detailed_description"
-                    android:textSize="18sp"
-                    android:layout_marginBottom="15dp" />
-
-            </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="Detailed description"
+                android:id="@+id/detailed_description"
+                android:textSize="18sp"
+                android:layout_toRightOf="@+id/status_icon"
+                android:minHeight="40dp"
+                android:paddingBottom="5dp" />
 
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:id="@+id/extras_layout"
+                android:layout_below="@+id/detailed_description"
+                android:layout_toRightOf="@+id/status_icon">
 
                 <TextView
                     tools:text="NZ Post"
@@ -74,7 +71,7 @@
                     android:textColor="#777" />
             </LinearLayout>
 
-        </LinearLayout>
+        </RelativeLayout>
     </android.support.v7.widget.CardView>
 
     <ListView
@@ -83,6 +80,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/events_list"
         android:divider="@null"
-        android:dividerHeight="@null" />
+        android:dividerHeight="@null"
+        android:layout_marginTop="20dp" />
 
 </LinearLayout>

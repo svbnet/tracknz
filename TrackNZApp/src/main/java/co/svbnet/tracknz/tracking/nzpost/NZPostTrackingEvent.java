@@ -23,7 +23,8 @@ public class NZPostTrackingEvent implements Parcelable {
     private String description;
     @SerializedName("datetime")
     private String dateString;
-    private Date date;
+    // NZ Post returns a string in the object named "date", which is a date string which confuses gson
+    private Date dateObj;
 
     public NZPostTrackingEvent() {
     }
@@ -41,7 +42,7 @@ public class NZPostTrackingEvent implements Parcelable {
         dest.writeInt(flagInt);
         dest.writeString(description);
         if (dateString == null) {
-            dateString = DateFormatUtil.FORMAT.format(date);
+            dateString = DateFormatUtil.FORMAT.format(dateObj);
         }
         dest.writeString(dateString);
     }
@@ -92,9 +93,9 @@ public class NZPostTrackingEvent implements Parcelable {
     }
 
     private boolean parseDate() {
-        if (date == null) {
+        if (dateObj == null) {
             try {
-                date = DateFormatUtil.parseNZPDate(dateString);
+                dateObj = DateFormatUtil.parseNZPDate(dateString);
             } catch (ParseException e) {
                 return false;
             }
@@ -104,13 +105,13 @@ public class NZPostTrackingEvent implements Parcelable {
 
     public Date getDate() {
         if (parseDate()) {
-            return date;
+            return dateObj;
         }
         return new Date();
     }
 
     public void setDate(Date date) {
-        this.date = date;
+        this.dateObj = date;
     }
 
     @Override

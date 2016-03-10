@@ -15,14 +15,17 @@
             android:summary="@string/preference_summary_notifications"
             android:title="@string/preference_notifications" />
         <SwitchPreference
+            android:dependency="notifications_enabled"
             android:key="notifications_vibrate"
             android:defaultValue="true"
             android:title="@string/preference_vibration" />
         <SwitchPreference
+            android:dependency="notifications_enabled"
             android:key="notifications_sound"
             android:defaultValue="true"
             android:title="@string/preference_sound" />
         <SwitchPreference
+            android:dependency="notifications_enabled"
             android:key="notifications_light"
             android:defaultValue="true"
             android:title="@string/preference_light" />
