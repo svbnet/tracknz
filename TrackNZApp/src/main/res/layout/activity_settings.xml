@@ -1,20 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SettingsActivity"
-    android:orientation="vertical">
+    tools:context=".SettingsActivity">
 
     <include
         android:layout_width="fill_parent"
+        android:layout_height="?attr/actionBarSize"
+        layout="@layout/toolbar"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/toolbar_include" />
+
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        layout="@layout/toolbar" />
+        android:foreground="@drawable/bottom_shadow"
+        android:layout_below="@+id/toolbar_include" />
 
     <fragment
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:name="co.svbnet.tracknz.activity.SettingsActivity$SettingsFragment"
-        android:id="@+id/settings_fragment" />
+        android:id="@+id/settings_fragment"
+        android:layout_below="@+id/toolbar_include" />
 
-</LinearLayout>
+</RelativeLayout>
