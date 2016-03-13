@@ -18,6 +18,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.util.TypedValue;
 
 import java.util.List;
 
@@ -39,11 +40,15 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
     private static final String TAG = "BackgroundReceiver";
     private static final String GROUP_KEY_PACKAGES = "group_key_packages";
     private static final int NOTIFICATION_ID = 0;
+    private static final int NOTIFICATION_LARGE_ICON_SIZE_DP = 48;
 
     private Bitmap createNotificationLargeIcon(Context context, int flag) {
         Resources contextResources = context.getResources();
+        // Get dimensions of icon appropriate for the device's screen density
+        int size = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                NOTIFICATION_LARGE_ICON_SIZE_DP, contextResources.getDisplayMetrics());
         // Our background bitmap we're going to draw on
-        Bitmap bitmap = Bitmap.createBitmap(192, 192, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Bitmap iconBitmap = BitmapFactory.decodeResource(contextResources, PackageFlag.getImageDrawableForFlag(flag));
         // Create canvas based on background bitmap
         Canvas mainCanvas = new Canvas(bitmap);
@@ -55,9 +60,11 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         backgroundPaint.setAntiAlias(true);
         mainCanvas.drawARGB(0, 0, 0, 0);
         backgroundPaint.setColor(backgroundColor);
+        // Draw circular background
         mainCanvas.drawOval(backgroundRectF, backgroundPaint);
         int cx = (bitmap.getWidth() - iconBitmap.getWidth()) >> 1;
         int cy = (bitmap.getWidth() - iconBitmap.getHeight()) >> 1;
+        // Draw the icon
         mainCanvas.drawBitmap(iconBitmap, cx, cy, backgroundPaint);
         iconBitmap.recycle();
         return bitmap;
@@ -105,7 +112,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
 
         // Build notification
         builder.setNumber(packages.size())
-                .setContentTitle(context.getString(R.string.app_name))
+                .setContentTitle(context.getString(R.string.notif_multiple_title))
                 .setContentText(contentText)
                 .setContentIntent(PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), PendingIntent.FLAG_ONE_SHOT))
                 .setStyle(inboxStyle);

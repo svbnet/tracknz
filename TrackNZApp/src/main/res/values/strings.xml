@@ -104,6 +104,7 @@
     <string name="interval_day">1 day</string>
     <string name="notif_text_packages_two" formatted="false">%s and %s have changed status.</string>
     <string name="notif_text_packages_more" formatted="false">%s, %s and %d more have changed status.</string>
+    <string name="notif_multiple_title">New package events</string>
     <string name="package_doesnt_exist">Not yet received</string>
     <string name="package_doesnt_exist_toast">This package has not been received by NZ Post yet. It may not have entered New Zealand yet, or it still needs to be processed.</string>
     <string name="no_tracked_items">No packages here.</string>

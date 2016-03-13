@@ -99,6 +99,10 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
             NZPostTrackingEvent storedEvent = db.findLatestEventForPackage(trackedPackage.getTrackingCode());
             NZPostTrackingEvent recentEvent = trackedPackage.getMostRecentEvent();
 
+            // Also get the label
+            String label = db.getLabel(trackedPackage.getTrackingCode());
+            trackedPackage.setLabel(label);
+
             if ((storedEvent == null && recentEvent != null) || !storedEvent.equals(recentEvent)) {
                 updatedPackages.add(trackedPackage);
                 db.updatePackage(trackedPackage);

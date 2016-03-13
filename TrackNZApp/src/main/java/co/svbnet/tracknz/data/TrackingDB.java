@@ -272,6 +272,19 @@ public class TrackingDB implements Closeable {
         db.update(TrackingDBHelper.TBL_TRACKED_PACKAGES, values, "code = ?", new String[]{packageCode});
     }
 
+    public String getLabel(String code) {
+        Cursor cur = db.query(TrackingDBHelper.TBL_TRACKED_PACKAGES,
+                new String[] {"label"}, "code = ?", new String[]{code}, null, null, null);
+        try {
+            if (!cur.moveToFirst()) {
+                return null;
+            }
+            return cur.getString(0);
+        } finally {
+            cur.close();
+        }
+    }
+
     public void updatePackage(NZPostTrackedPackage trackedPackage) {
         openIfNotOpened();
         ContentValues values = new ContentValues();
