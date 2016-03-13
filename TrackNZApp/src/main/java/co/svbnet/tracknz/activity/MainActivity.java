@@ -4,6 +4,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -373,6 +374,7 @@ public class MainActivity extends ToolbarActivity {
                     PackageModifyUtil.editLabel(MainActivity.this, db, trackedPackage, new PackageModifyUtil.LabelEditComplete() {
                         @Override
                         public void onLabelEditComplete(String newLabel) {
+                            mode.finish();
                             reloadItems();
                         }
                     });

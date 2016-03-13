@@ -6,16 +6,16 @@ android {
 
     defaultConfig {
         applicationId "co.svbnet.tracknz"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 23
-        versionCode 14
-        versionName "1.4.5"
+        versionCode 15
+        versionName "1.5"
     }
     buildTypes {
         debug {
             versionNameSuffix "-debug"
             applicationIdSuffix ".debug"
-            resValue "string", "app_name", "TrackNZ DEBUG"
+            resValue "string", "app_name", "TrackNZ D"
         }
 
         release {

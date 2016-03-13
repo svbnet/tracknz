@@ -126,11 +126,12 @@ public class PackageInfoActivity extends ToolbarActivity {
                 PackageModifyUtil.editLabel(this, db, trackedPackage, new PackageModifyUtil.LabelEditComplete() {
                     @Override
                     public void onLabelEditComplete(String newLabel) {
-                        if (newLabel == null) {
-                            setTitle(trackedPackage.getTrackingCode());
+                        setTitle(trackedPackage.getTitle());
+                        if (newLabel != null) {
+                            labelLabel.setVisibility(View.VISIBLE);
+                            labelLabel.setText(trackedPackage.getTrackingCode());
                         } else {
-                            setTitle(newLabel);
-                            getSupportActionBar().setSubtitle(trackedPackage.getTrackingCode());
+                            labelLabel.setVisibility(View.GONE);
                         }
                     }
                 });
