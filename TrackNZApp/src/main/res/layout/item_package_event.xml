@@ -10,8 +10,8 @@
 
     <ImageView
         android:id="@+id/status_icon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
         tools:background="@drawable/tracking_status_icon"
         tools:src="@drawable/ic_status_indeterminate"
         android:cropToPadding="false"
@@ -20,7 +20,7 @@
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginRight="10dp" />
+        android:layout_marginRight="15dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -30,7 +30,8 @@
         android:layout_alignTop="@+id/status_icon"
         android:layout_toRightOf="@+id/status_icon"
         android:layout_toEndOf="@+id/status_icon"
-        android:textSize="17sp" />
+        android:textSize="17sp"
+        android:layout_marginBottom="3dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -40,6 +41,7 @@
         android:layout_below="@+id/description"
         android:layout_alignLeft="@+id/description"
         android:layout_alignStart="@+id/description"
-        android:textStyle="italic" />
+        android:textIsSelectable="false"
+        android:textColor="#777" />
 
 </RelativeLayout>

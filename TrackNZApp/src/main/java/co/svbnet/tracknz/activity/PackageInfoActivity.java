@@ -11,7 +11,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +38,9 @@ public class PackageInfoActivity extends ToolbarActivity {
     private TextView detailedDescription;
     private TextView labelLabel;
     private ImageView statusIcon;
+    private RelativeLayout infoLayout;
+    private ListView eventsListView;
+    private LinearLayout emptyEventsLayout;
 
     private PackageEventsArrayAdapter eventsArrayAdapter;
 
@@ -61,9 +66,11 @@ public class PackageInfoActivity extends ToolbarActivity {
         detailedDescription = (TextView)findViewById(R.id.detailed_description);
         labelLabel = (TextView)findViewById(R.id.label);
         statusIcon = (ImageView)findViewById(R.id.status_icon);
-        ListView eventsListView = (ListView) findViewById(R.id.events_list);
+        infoLayout = (RelativeLayout)findViewById(R.id.info_layout);
+        eventsListView = (ListView) findViewById(R.id.events_list);
         eventsArrayAdapter = new PackageEventsArrayAdapter(this, trackedPackage.getEvents());
         eventsListView.setAdapter(eventsArrayAdapter);
+        emptyEventsLayout = (LinearLayout)findViewById(R.id.empty_events);
         refreshUI();
     }
 
@@ -76,17 +83,20 @@ public class PackageInfoActivity extends ToolbarActivity {
             labelLabel.setVisibility(View.GONE);
         }
         if (trackedPackage.isTracked()) {
+            eventsListView.setVisibility(View.VISIBLE);
+            emptyEventsLayout.setVisibility(View.GONE);
             detailedDescription.setText(trackedPackage.getDetailedStatus());
             NZPostTrackingEvent latestEvent = trackedPackage.getMostRecentEvent();
+            toolbar.setBackgroundResource(PackageFlag.getColorForFlag(latestEvent.getFlag()));
+            infoLayout.setBackgroundResource(PackageFlag.getColorForFlag(latestEvent.getFlag()));
             statusIcon.setImageResource(PackageFlag.getImageDrawableForFlag(latestEvent.getFlag()));
-            statusIcon.setBackgroundResource(PackageFlag.getBackgroundDrawableForFlag(latestEvent.getFlag()));
             if (trackedPackage.getSource() != null) {
                 TextView srcTV = ((TextView) findViewById(R.id.source));
                 switch (trackedPackage.getSource().toLowerCase()) {
                     case "nz_post":
                         srcTV.setText("NZ Post");
                         break;
-                    case "courierpost":
+                    case "courier_post":
                         srcTV.setText("CourierPost");
                         break;
                     default:
@@ -96,10 +106,12 @@ public class PackageInfoActivity extends ToolbarActivity {
             }
             eventsArrayAdapter.notifyDataSetChanged();
         } else {
-            statusIcon.setBackgroundResource(R.drawable.tracking_status_icon_not_entered);
+            toolbar.setBackgroundResource(R.color.tracking_status_not_entered);
+            infoLayout.setBackgroundResource(R.color.tracking_status_not_entered);
             statusIcon.setImageResource(R.drawable.ic_not_found);
             detailedDescription.setText(R.string.package_doesnt_exist_toast);
-
+            eventsListView.setVisibility(View.GONE);
+            emptyEventsLayout.setVisibility(View.VISIBLE);
         }
 
     }
