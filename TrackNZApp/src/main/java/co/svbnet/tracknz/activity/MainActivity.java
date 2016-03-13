@@ -108,7 +108,7 @@ public class MainActivity extends ToolbarActivity {
                 if (packagesToDelete.size() == 0) return false;
                 new AlertDialog.Builder(MainActivity.this)
                         .setTitle(R.string.title_delete_packages)
-                        .setMessage(MainActivity.this.getString(R.string.message_delete_packages, packagesToDelete.size()))
+                        .setMessage(MainActivity.this.getString(R.string.message_delete_all_delivered_packages))
                         .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
