@@ -4,7 +4,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -23,16 +22,20 @@ import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 
 import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.OnItemClick;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.adapter.TrackedPackagesArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.tasks.PackageUpdateTask;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
-import co.svbnet.tracknz.ui.MenuItemStateChanger;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.BarcodeScannerUtil;
 import co.svbnet.tracknz.util.CodeValidationUtil;
@@ -47,16 +50,11 @@ public class MainActivity extends ToolbarActivity {
     public static final int REQUEST_TRACKING_CODES = 1;
     public static final int REQUEST_BARCODE = 2;
 
-    private MenuItemStateChanger menuItemStateChanger = new MenuItemStateChanger(new int[] {
-            R.id.action_refresh,
-            R.id.action_clear_done
-    });
-
     // UI widget references
-    private FloatingActionsMenu addFloatingButton;
-    private FloatingActionButton pasteFloatingButton;
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private ListView listView;
+    @Bind(R.id.add_button) FloatingActionsMenu addFloatingButton;
+    @Bind(R.id.fab_new_from_clipboard) FloatingActionButton pasteFloatingButton;
+    @Bind(R.id.packages_container) SwipeRefreshLayout swipeRefreshLayout;
+    @Bind(R.id.packages) ListView listView;
 
     // Data references
     private TrackingDB db = new TrackingDB(this);
@@ -71,6 +69,7 @@ public class MainActivity extends ToolbarActivity {
         super.onCreate(savedInstanceState);
         setContentViewAndToolbar(R.layout.activity_main);
         setTitle(R.string.title_activity_main);
+        ButterKnife.bind(this);
         setupUi();
         checkIfCodeIsOnClipboard();
     }
@@ -85,8 +84,6 @@ public class MainActivity extends ToolbarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        menuItemStateChanger.assign(menu);
-        menuItemStateChanger.setItemsEnabled(adapterItems.size() > 0);
         return true;
     }
 
@@ -115,7 +112,7 @@ public class MainActivity extends ToolbarActivity {
                                 for (String code : packagesToDelete) {
                                     db.deletePackage(code);
                                 }
-                                reloadItems();
+                                updateItems();
                                 dialog.dismiss();
                             }
                         })
@@ -138,7 +135,7 @@ public class MainActivity extends ToolbarActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        reloadItems();
+        updateItems();
         checkIfCodeIsOnClipboard();
     }
 
@@ -193,63 +190,63 @@ public class MainActivity extends ToolbarActivity {
         }
     }
 
+    @OnClick(R.id.fab_enter)
+    public void onFabEnterClick(View v) {
+        startActivity(new Intent(MainActivity.this, CodeInputActivity.class));
+        // Make sure FAB menu is collapsed after we start an activity
+        addFloatingButton.collapse();
+    }
+
+    @OnClick(R.id.fab_scan)
+    public void onFabScanClick(View v) {
+        if (!BarcodeScannerUtil.isBarcodeScannerInstalled(getPackageManager())) {
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(R.string.title_zxing_not_installed)
+                    .setMessage(R.string.message_zxing_not_installed)
+                    .setPositiveButton(R.string.dialog_button_get_app, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent gpmIntent = new Intent(Intent.ACTION_VIEW);
+                            gpmIntent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
+                            startActivity(gpmIntent);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+        } else {
+            Intent zxingIntent = new Intent(BarcodeScannerUtil.ZXING_SCAN_ACTIVITY_NAME);
+            startActivityForResult(zxingIntent, REQUEST_BARCODE);
+        }
+        addFloatingButton.collapse();
+    }
+
+    @OnClick(R.id.fab_new_from_clipboard)
+    public void onFabPasteClick(View v) {
+        String code = getClipboardTrackingCode();
+        if (code == null) return;
+        Intent intent = new Intent(MainActivity.this, CodeInputActivity.class);
+        intent.putExtra(CodeInputActivity.CODE, code);
+        startActivityForResult(intent, REQUEST_TRACKING_CODES);
+        addFloatingButton.collapse();
+    }
+
+    @OnItemClick(R.id.packages)
+    public void onPackagesListViewItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Intent intent = new Intent(MainActivity.this, PackageInfoActivity.class);
+        intent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, adapterItems.get(position));
+        startActivity(intent);
+    }
+
     /**
      * References widgets from XML and performs initial setup activities.
      */
     private void setupUi() {
-        addFloatingButton = (FloatingActionsMenu) findViewById(R.id.add_button);
-        // Make sure FAB menu is collapsed after we start an activity
-        findViewById(R.id.fab_enter).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, CodeInputActivity.class));
-                addFloatingButton.collapse();
-            }
-        });
-        findViewById(R.id.fab_scan).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!BarcodeScannerUtil.isBarcodeScannerInstalled(getPackageManager())) {
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setTitle(R.string.title_zxing_not_installed)
-                            .setMessage(R.string.message_zxing_not_installed)
-                            .setPositiveButton(R.string.dialog_button_get_app, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent gpmIntent = new Intent(Intent.ACTION_VIEW);
-                                    gpmIntent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
-                                    startActivity(gpmIntent);
-                                }
-                            })
-                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .show();
-                } else {
-                    Intent zxingIntent = new Intent(BarcodeScannerUtil.ZXING_SCAN_ACTIVITY_NAME);
-                    startActivityForResult(zxingIntent, REQUEST_BARCODE);
-                }
-                addFloatingButton.collapse();
-            }
-        });
-        pasteFloatingButton = (FloatingActionButton)findViewById(R.id.fab_new_from_clipboard);
-        pasteFloatingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String code = getClipboardTrackingCode();
-                if (code == null) return;
-                Intent intent = new Intent(MainActivity.this, CodeInputActivity.class);
-                intent.putExtra(CodeInputActivity.CODE, code);
-                startActivityForResult(intent, REQUEST_TRACKING_CODES);
-                addFloatingButton.collapse();
-            }
-        });
-
-        // setup our packages list view swipe refresh layout
-        swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.packages_container);
+        // setup our packages swipe refresh layout
         swipeRefreshLayout.setColorSchemeResources(R.color.accent);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -261,20 +258,12 @@ public class MainActivity extends ToolbarActivity {
 
         // create packages list view adapter
         adapter = new TrackedPackagesArrayAdapter(this, adapterItems);
-        listView = (ListView)findViewById(R.id.packages);
         listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            Intent intent = new Intent(MainActivity.this, PackageInfoActivity.class);
-            intent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, adapterItems.get(position));
-            startActivity(intent);
-            }
-        });
         listView.setMultiChoiceModeListener(new PackagesMultiChoiceListener());
 
-        // update list view items
-        reloadItems();
+        // update set view items
+        adapterItems.addAll(db.findAllPackages());
+        adapter.notifyDataSetChanged();
     }
 
     private String getClipboardTrackingCode() {
@@ -304,24 +293,18 @@ public class MainActivity extends ToolbarActivity {
         if (adapterItems.size() > 0) {
             findViewById(R.id.empty_list_text).setVisibility(View.GONE);
             swipeRefreshLayout.setVisibility(View.VISIBLE);
-            menuItemStateChanger.setItemsEnabled(true);
         } else {
             findViewById(R.id.empty_list_text).setVisibility(View.VISIBLE);
             swipeRefreshLayout.setVisibility(View.GONE);
-            menuItemStateChanger.setItemsEnabled(false);
         }
     }
 
-    private void reloadItems() {
-        adapterItems.clear();
-        adapterItems.addAll(db.findAllPackages());
+    private void updateItems() {
         updateWidgetStates();
         adapter.notifyDataSetChanged();
     }
 
     private class PackagesMultiChoiceListener implements AbsListView.MultiChoiceModeListener {
-
-        private MenuItemStateChanger misc = new MenuItemStateChanger(new int[]{ R.id.action_set_label });
 
         private List<Integer> getIndicesOfCheckedItems(SparseBooleanArray items) {
             List<Integer> indices = new ArrayList<>();
@@ -340,14 +323,12 @@ public class MainActivity extends ToolbarActivity {
             if (checkedItems >= 1) {
                 mode.setTitle(getString(R.string.actionmode_selected, checkedItems));
                 // Apply visibility settings to singular menu items
-                misc.setItemsVisible(!(checkedItems > 1));
             }
         }
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             mode.getMenuInflater().inflate(R.menu.menu_packages_contextual, menu);
-            misc.assign(menu);
             // Hide FAB when in CAB mode
             addFloatingButton.setVisibility(View.GONE);
             // Stop refreshing
@@ -375,7 +356,7 @@ public class MainActivity extends ToolbarActivity {
                         @Override
                         public void onLabelEditComplete(String newLabel) {
                             mode.finish();
-                            reloadItems();
+                            updateItems();
                         }
                     });
                     break;
@@ -426,7 +407,7 @@ public class MainActivity extends ToolbarActivity {
                                     for (NZPostTrackedPackage id : packagesToDelete) {
                                             db.deletePackage(id.getTrackingCode());
                                     }
-                                    reloadItems();
+                                    updateItems();
                                     dialog.dismiss();
                                     mode.finish();
                                 }
@@ -479,7 +460,7 @@ public class MainActivity extends ToolbarActivity {
         @Override
         protected void onError(Exception error) {
             String errorMessage = getString(R.string.message_unknown_error, error.getClass().getName(), error.getMessage());
-            if (error instanceof ConnectException) {
+            if (error instanceof ConnectException || error instanceof UnknownHostException) {
                 errorMessage = getString(R.string.message_error_no_connection);
             }
             new AlertDialog.Builder(context)
@@ -496,7 +477,15 @@ public class MainActivity extends ToolbarActivity {
 
         @Override
         protected void onPackagesInserted(List<NZPostTrackedPackage> updatedPackages) {
-            reloadItems();
+            for (NZPostTrackedPackage item : adapterItems) {
+                for (NZPostTrackedPackage uitem : updatedPackages) {
+                    if (item.getTrackingCode().equals(uitem.getTrackingCode())) {
+                        adapterItems.set(adapterItems.indexOf(item), uitem);
+//                        updatedPackages.remove(uitem);
+                    }
+                }
+            }
+            updateItems();
         }
 
         @Override

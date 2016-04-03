@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 /**
@@ -25,7 +26,7 @@ public class BackgroundRefreshManager {
         ctx = appContext;
     }
 
-    public void enableBackgroundRefresh(SharedPreferences preferences) {
+    public void enableBackgroundRefresh() {
         if (alarmPendingIntent == null) {
             Intent alarmIntent = new Intent(INTENT_START_ALARM);
             alarmPendingIntent = PendingIntent.getBroadcast(ctx, 0, alarmIntent, 0);
@@ -49,12 +50,12 @@ public class BackgroundRefreshManager {
      * Enables or disables background refresh based on the {@link PreferenceKeys#NOTIFICATIONS_ENABLED} preference.
      * @param sp The preference manager to use. Pass null to use the default shared preferences.
      */
-    public void setFromPreferences(SharedPreferences sp) {
+    public void setFromPreferences(@Nullable SharedPreferences sp) {
         SharedPreferences preferences = sp == null
                 ? PreferenceManager.getDefaultSharedPreferences(ctx)
                 : sp;
         if (preferences.getBoolean(PreferenceKeys.NOTIFICATIONS_ENABLED, false)) {
-            enableBackgroundRefresh(preferences);
+            enableBackgroundRefresh();
         } else {
             disableBackgroundRefresh();
         }
