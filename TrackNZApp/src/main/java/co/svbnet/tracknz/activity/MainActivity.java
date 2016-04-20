@@ -219,7 +219,7 @@ public class MainActivity extends ToolbarActivity {
                     })
                     .show();
         } else {
-            Intent zxingIntent = new Intent(BarcodeScannerUtil.ZXING_SCAN_ACTIVITY_NAME);
+            Intent zxingIntent = BarcodeScannerUtil.makeIntent();
             startActivityForResult(zxingIntent, REQUEST_BARCODE);
         }
         addFloatingButton.collapse();
