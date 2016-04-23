@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.github.gfx.ribbonizer'
 
 android {
     compileSdkVersion 23
@@ -13,13 +14,12 @@ android {
     }
     buildTypes {
         debug {
+            debuggable true
             versionNameSuffix "-debug"
             applicationIdSuffix ".debug"
-            resValue "string", "app_name", "TrackNZ D"
         }
 
         release {
-            resValue "string", "app_name", "TrackNZ"
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -38,6 +38,18 @@ android {
     }
 }
 
+ribbonizer {
+
+    builder { variant, iconFile ->
+        if (variant.flavorName == "local") {
+            return grayRibbonFilter(variant, iconFile)
+        } else if (variant.flavorName == "staging") {
+            return yellowRibbonFilter(variant, iconFile)
+        } else {
+            return greenRibbonFilter(variant, iconFile)
+        }
+    }
+}
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.3.0'

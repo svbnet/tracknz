@@ -1,5 +1,5 @@
 <resources>
-    <!-- app_name is now in Gradle build file. -->
+    <string name="app_name">TrackNZ</string>
 
     <!-- Menu actions -->
     <string name="action_refresh">Refresh</string>
