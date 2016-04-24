@@ -49,7 +49,7 @@ public class PackageListFragment extends Fragment {
     @Bind(R.id.packages) ListView listView;
 
     // Data references
-    private TrackingDB db = new TrackingDB(getContext());
+    private TrackingDB db;
     private TrackedPackagesArrayAdapter adapter;
     private List<NZPostTrackedPackage> adapterItems = new ArrayList<>();
 
@@ -76,19 +76,22 @@ public class PackageListFragment extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement OnPackageListInteraction");
         }
+        db = new TrackingDB(context);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        db.close();
+        db = null;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_package_info, container, false);
+        View view = inflater.inflate(R.layout.fragment_package_list, container, false);
         ButterKnife.bind(this, view);
         // setup our packages swipe refresh layout
         swipeRefreshLayout.setColorSchemeResources(R.color.accent);

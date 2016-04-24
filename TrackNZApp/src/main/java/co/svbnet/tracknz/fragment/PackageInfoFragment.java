@@ -23,7 +23,7 @@ public class PackageInfoFragment extends Fragment {
 
     private static final String ARG_PACKAGE = "package";
 
-    private NZPostTrackedPackage mPackage;
+    private NZPostTrackedPackage mPackage = new NZPostTrackedPackage();
 
     @Bind(R.id.detailed_description) TextView detailedDescription;
     @Bind(R.id.label) TextView labelLabel;
@@ -60,8 +60,8 @@ public class PackageInfoFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_package_info, container, false);
         ButterKnife.bind(this, view);
-        mEventsArrayAdapter = new PackageEventsArrayAdapter(this.getContext(), mPackage.getEvents());
-        eventsListView.setAdapter(mEventsArrayAdapter);
+//        mEventsArrayAdapter = new PackageEventsArrayAdapter(this.getContext(), mPackage.getEvents());
+//        eventsListView.setAdapter(mEventsArrayAdapter);
         return view;
     }
 }
