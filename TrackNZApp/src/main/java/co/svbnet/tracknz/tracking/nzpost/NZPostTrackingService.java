@@ -21,7 +21,7 @@ import co.svbnet.tracknz.tracking.HttpUtil;
 public class NZPostTrackingService {
 
     private static final String NZP_TRACKING_API_KEY = "8ad4cbf0-47cb-0130-b979-005056920ffa";
-    private static final String ENDPOINT = BuildConfig.DEBUG ? "http://labs.svbnet.co/testdata/get_packages.php" : "https://api.nzpost.co.nz/tracking/track";
+    private static final String ENDPOINT = BuildConfig.DEBUG ? "http://mercury/mock_service.php" : "https://api.nzpost.co.nz/tracking/track";
     private static final String NZP_URL_FORMAT = "https://www.nzpost.co.nz/tools/tracking/item/%s";
     private static final String CP_URL_FORMAT = "https://trackandtrace.courierpost.co.nz/search/%s";
 

@@ -111,6 +111,7 @@ public class PackageListFragment extends Fragment {
         // update set view items
         adapterItems.addAll(db.findAllPackages());
         adapter.notifyDataSetChanged();
+        updateWidgetStates(view);
         return view;
     }
 
@@ -164,18 +165,18 @@ public class PackageListFragment extends Fragment {
     /**
      * Enables or disables menu items based on if there are existing packages.
      */
-    private void updateWidgetStates() {
+    private void updateWidgetStates(View view) {
         if (adapterItems.size() > 0) {
-            getView().findViewById(R.id.empty_list_text).setVisibility(View.GONE);
+            view.findViewById(R.id.empty_list_text).setVisibility(View.GONE);
             swipeRefreshLayout.setVisibility(View.VISIBLE);
         } else {
-            getView().findViewById(R.id.empty_list_text).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.empty_list_text).setVisibility(View.VISIBLE);
             swipeRefreshLayout.setVisibility(View.GONE);
         }
     }
 
     private void updateItems() {
-        updateWidgetStates();
+        updateWidgetStates(getView());
         adapter.notifyDataSetChanged();
     }
 

@@ -20,6 +20,7 @@ import android.widget.Toast;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.adapter.PackageEventsArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
+import co.svbnet.tracknz.fragment.PackageInfoFragment;
 import co.svbnet.tracknz.tracking.PackageFlag;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
@@ -33,16 +34,6 @@ public class PackageInfoActivity extends ToolbarActivity {
 
     public static final String PACKAGE_PARCEL = "PACKAGE_PARCEL";
     private NZPostTrackedPackage trackedPackage;
-    private TrackingDB db = new TrackingDB(this);
-
-    private TextView detailedDescription;
-    private TextView labelLabel;
-    private ImageView statusIcon;
-    private RelativeLayout infoLayout;
-    private ListView eventsListView;
-    private LinearLayout emptyEventsLayout;
-
-    private PackageEventsArrayAdapter eventsArrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,150 +41,10 @@ public class PackageInfoActivity extends ToolbarActivity {
         setContentViewAndToolbar(R.layout.activity_package_info);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         trackedPackage = getIntent().getParcelableExtra(PACKAGE_PARCEL);
-        if (trackedPackage.hasPendingEvents()) {
-            db.clearPendingEvents(trackedPackage.getTrackingCode());
-        }
-        setupUi();
-    }
-
-    @Override
-    protected void onDestroy() {
-        db.close();
-        super.onDestroy();
-    }
-
-    private void setupUi() {
-        detailedDescription = (TextView)findViewById(R.id.detailed_description);
-        labelLabel = (TextView)findViewById(R.id.label);
-        statusIcon = (ImageView)findViewById(R.id.status_icon);
-        infoLayout = (RelativeLayout)findViewById(R.id.info_layout);
-        eventsListView = (ListView) findViewById(R.id.events_list);
-        eventsArrayAdapter = new PackageEventsArrayAdapter(this, trackedPackage.getEvents());
-        eventsListView.setAdapter(eventsArrayAdapter);
-        emptyEventsLayout = (LinearLayout)findViewById(R.id.empty_events);
-        refreshUI();
-    }
-
-    private void refreshUI() {
-        setTitle(trackedPackage.getTitle());
-        if (trackedPackage.getLabel() != null) {
-            labelLabel.setVisibility(View.VISIBLE);
-            labelLabel.setText(trackedPackage.getTrackingCode());
-        } else {
-            labelLabel.setVisibility(View.GONE);
-        }
-        if (trackedPackage.isTracked()) {
-            eventsListView.setVisibility(View.VISIBLE);
-            emptyEventsLayout.setVisibility(View.GONE);
-            detailedDescription.setText(trackedPackage.getDetailedStatus());
-            NZPostTrackingEvent latestEvent = trackedPackage.getMostRecentEvent();
-            toolbar.setBackgroundResource(PackageFlag.getColorForFlag(latestEvent.getFlag()));
-            infoLayout.setBackgroundResource(PackageFlag.getColorForFlag(latestEvent.getFlag()));
-            statusIcon.setImageResource(PackageFlag.getImageDrawableForFlag(latestEvent.getFlag()));
-            if (trackedPackage.getSource() != null) {
-                TextView srcTV = ((TextView) findViewById(R.id.source));
-                switch (trackedPackage.getSource().toLowerCase()) {
-                    case "nz_post":
-                        srcTV.setText("NZ Post");
-                        break;
-                    case "courier_post":
-                        srcTV.setText("CourierPost");
-                        break;
-                    default:
-                        srcTV.setText(trackedPackage.getSource());
-                        break;
-                }
-            }
-            eventsArrayAdapter.notifyDataSetChanged();
-        } else {
-            toolbar.setBackgroundResource(R.color.tracking_status_not_entered);
-            infoLayout.setBackgroundResource(R.color.tracking_status_not_entered);
-            statusIcon.setImageResource(R.drawable.ic_not_found);
-            detailedDescription.setText(R.string.package_doesnt_exist_toast);
-            eventsListView.setVisibility(View.GONE);
-            emptyEventsLayout.setVisibility(View.VISIBLE);
-        }
-
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_package_info, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_share_code:
-                ShareUtil.shareCode(this, trackedPackage.getTrackingCode());
-                break;
-
-            case R.id.action_share_url:
-                ShareUtil.sharePackageUrl(this, trackedPackage);
-                break;
-
-            case R.id.action_set_label:
-                PackageModifyUtil.editLabel(this, db, trackedPackage, new PackageModifyUtil.LabelEditComplete() {
-                    @Override
-                    public void onLabelEditComplete(String newLabel) {
-                        setTitle(trackedPackage.getTitle());
-                        if (newLabel != null) {
-                            labelLabel.setVisibility(View.VISIBLE);
-                            labelLabel.setText(trackedPackage.getTrackingCode());
-                        } else {
-                            labelLabel.setVisibility(View.GONE);
-                        }
-                    }
-                });
-                break;
-
-            case R.id.action_delete:
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.title_delete_packages)
-                        .setMessage(
-                                trackedPackage.getLabel() == null ?
-                                        getString(R.string.message_delete_package, trackedPackage.getTrackingCode()) :
-                                        getString(R.string.message_delete_package_with_label, trackedPackage.getLabel(), trackedPackage.getTrackingCode())
-                        )
-                        .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                db.deletePackage(trackedPackage.getTrackingCode());
-                                finish();
-                            }
-                        })
-                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .show();
-                break;
-
-            case R.id.action_copy_code:
-                ClipboardManager clipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText(null, trackedPackage.getTrackingCode());
-                clipboard.setPrimaryClip(clip);
-                Toast toast = Toast.makeText(this, R.string.toast_copied_successfully, Toast.LENGTH_SHORT);
-                toast.show();
-                break;
-
-            case R.id.action_open_in_browser:
-                String url = "";
-                if (trackedPackage.getSource().equals("nz_post")) {
-                    url = NZPostTrackingService.getNZPostUrl(trackedPackage.getTrackingCode());
-                } else if(trackedPackage.getSource().equals("courier_post")) {
-                    url = NZPostTrackingService.getCourierPostUrl(trackedPackage.getTrackingCode());
-                }
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                break;
-
-
-        }
-        return super.onOptionsItemSelected(item);
+        PackageInfoFragment fragment = PackageInfoFragment.newInstance(trackedPackage);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.info_fragment_container, fragment)
+                .commit();
     }
 }

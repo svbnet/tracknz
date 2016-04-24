@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
@@ -34,6 +35,7 @@ import butterknife.OnItemClick;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.adapter.TrackedPackagesArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
+import co.svbnet.tracknz.fragment.PackageInfoFragment;
 import co.svbnet.tracknz.fragment.PackageListFragment;
 import co.svbnet.tracknz.tasks.PackageUpdateTask;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
@@ -52,11 +54,20 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
     public static final int REQUEST_TRACKING_CODES = 1;
     public static final int REQUEST_BARCODE = 2;
 
+    @Nullable
+    @Bind(R.id.info_fragment_container)
+    FrameLayout infoFragmentContainer;
+    @Nullable
+    @Bind(R.id.unselected_view)
+    View unselectedView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentViewAndToolbar(R.layout.activity_main);
         setTitle(R.string.title_activity_main);
+        ButterKnife.bind(this);
+
     }
 
     @Override
@@ -68,7 +79,28 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
 
     @Override
     public void onItemClicked(NZPostTrackedPackage trackedPackage) {
+        boolean displayTwoPanes = getResources().getBoolean(R.bool.display_two_panes);
+        if (displayTwoPanes) {
+            showPackageInInfoFragment(trackedPackage);
+        } else {
+            Intent intent = new Intent(this, PackageInfoActivity.class);
+            intent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, trackedPackage);
+            startActivity(intent);
+        }
+    }
 
+    private void showPackageInInfoFragment(NZPostTrackedPackage trackedPackage) {
+        if (unselectedView.getVisibility() != View.GONE) {
+            unselectedView.setVisibility(View.GONE);
+        }
+        if (infoFragmentContainer.getVisibility() != View.VISIBLE) {
+            infoFragmentContainer.setVisibility(View.VISIBLE);
+        }
+        PackageInfoFragment fragment = PackageInfoFragment.newInstance(trackedPackage);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.info_fragment_container, fragment)
+                .commit();
     }
 
     @Override
@@ -81,19 +113,19 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
 
     }
 
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
 //            case R.id.action_refresh:
 //                swipeRefreshLayout.setRefreshing(true);
 //                refreshTask = new MainPackageRefreshTask(new NZPostTrackingService());
 //                refreshTask.execute();
 //                break;
-//
-//            case R.id.action_settings:
-//                startActivity(new Intent(this, SettingsActivity.class));
-//                break;
-//
+
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
+
 //            case R.id.action_clear_done:
 //                final List<String> packagesToDelete = db.getDeliveredPackageCodes();
 //                if (packagesToDelete.size() == 0) return false;
@@ -118,13 +150,13 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
 //                        })
 //                        .show();
 //                break;
-//
-//            case R.id.action_about:
-//                startActivity(new Intent(this, AboutActivity.class));
-//                break;
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
+
+            case R.id.action_about:
+                startActivity(new Intent(this, AboutActivity.class));
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
 //    @Override
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
