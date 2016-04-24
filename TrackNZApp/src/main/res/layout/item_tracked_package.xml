@@ -4,7 +4,7 @@
     android:background="?android:attr/activatedBackgroundIndicator"
     android:layout_width="match_parent"
     android:layout_height="72dp"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingLeft="@dimen/package_item_padding"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="8dp">
 

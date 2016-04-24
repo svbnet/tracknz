@@ -61,6 +61,8 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
     @Bind(R.id.unselected_view)
     View unselectedView;
 
+    PackageInfoFragment mInfoFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,8 +79,11 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
         return true;
     }
 
+    private NZPostTrackedPackage selectedPackage;
+
     @Override
     public void onItemClicked(NZPostTrackedPackage trackedPackage) {
+        selectedPackage = trackedPackage;
         boolean displayTwoPanes = getResources().getBoolean(R.bool.display_two_panes);
         if (displayTwoPanes) {
             showPackageInInfoFragment(trackedPackage);
@@ -96,10 +101,12 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
         if (infoFragmentContainer.getVisibility() != View.VISIBLE) {
             infoFragmentContainer.setVisibility(View.VISIBLE);
         }
-        PackageInfoFragment fragment = PackageInfoFragment.newInstance(trackedPackage);
+        mInfoFragment = PackageInfoFragment.newInstance(trackedPackage);
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.info_fragment_container, fragment)
+                .setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_fast)
+
+                .replace(R.id.info_fragment_container, mInfoFragment)
                 .commit();
     }
 

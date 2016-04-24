@@ -136,9 +136,21 @@ public class PackageListFragment extends Fragment {
         addFloatingButton.collapse();
     }
 
+    private View lastSelected = null;
+    private String lastSelectedCode;
+
     @OnItemClick(R.id.packages)
     public void onPackagesListViewItemClick(AdapterView<?> parent, View view, int position, long id) {
-        mListener.onItemClicked(adapterItems.get(position));
+        if (getContext().getResources().getBoolean(R.bool.display_two_panes)) {
+            if (lastSelected != null) {
+                lastSelected.setBackgroundResource(android.R.color.transparent);
+            }
+            view.setBackgroundResource(R.color.selection);
+            lastSelected = view;
+        }
+        NZPostTrackedPackage selectedPackage = adapterItems.get(position);
+        lastSelectedCode = selectedPackage.getTrackingCode();
+        mListener.onItemClicked(selectedPackage);
     }
 
 
@@ -237,6 +249,11 @@ public class PackageListFragment extends Fragment {
                 for (NZPostTrackedPackage uitem : updatedPackages) {
                     if (item.getTrackingCode().equals(uitem.getTrackingCode())) {
                         adapterItems.set(adapterItems.indexOf(item), uitem);
+                        if (context.getResources().getBoolean(R.bool.display_two_panes)) {
+                            if (item.getTrackingCode().equals(lastSelectedCode)) {
+                                mListener.onItemClicked(uitem);
+                            }
+                        }
 //                        updatedPackages.remove(uitem);
                     }
                 }
