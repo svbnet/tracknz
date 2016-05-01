@@ -1,7 +1,9 @@
 package co.svbnet.tracknz.activity;
 
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -122,12 +124,12 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
 
     private void goBack() {
         selectedPackage = null;
-        applyContainerVisibility();
         getSupportFragmentManager()
                 .beginTransaction()
                 .remove(mInfoFragment)
                 .commit();
         isShowingFullPackage = false;
+        applyContainerVisibility();
         applyActionBar();
     }
 
@@ -145,13 +147,14 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
 
     private void showPackageInInfoFragment(NZPostTrackedPackage trackedPackage) {
         mInfoFragment = PackageInfoFragment.newInstance(trackedPackage);
-        applyContainerVisibility();
-        applyActionBar();
+
         getSupportFragmentManager()
                 .beginTransaction()
                 .setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_fast)
                 .replace(R.id.info_fragment_container, mInfoFragment)
                 .commit();
+        applyContainerVisibility();
+        applyActionBar();
     }
 
     private void applyActionBar() {
@@ -191,7 +194,35 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
 
     @Override
     public void requestBarcode() {
-        startActivityForResult(BarcodeScannerUtil.makeIntent(), REQUEST_BARCODE);
+        requestScan();
+    }
+
+    private void requestScan() {
+        if (!BarcodeScannerUtil.isBarcodeScannerInstalled(getPackageManager())) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.title_zxing_not_installed)
+                    .setMessage(R.string.message_zxing_not_installed)
+                    .setPositiveButton(R.string.dialog_button_get_app, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            try {
+                                startActivity(
+                                        new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + BarcodeScannerUtil.ZXING_SCAN_APP_ID)));
+                            } catch (ActivityNotFoundException anfe) {
+
+                            }
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    })
+                    .show();
+        } else {
+            startActivityForResult(BarcodeScannerUtil.makeIntent(), REQUEST_BARCODE);
+        }
     }
 
     @Override

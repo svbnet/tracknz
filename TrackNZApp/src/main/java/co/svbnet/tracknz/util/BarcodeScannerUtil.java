@@ -20,6 +20,6 @@ public class BarcodeScannerUtil {
     }
 
     public static Intent makeIntent() {
-        return new Intent(ZXING_SCAN_APP_ID + '/' + ZXING_SCAN_ACTIVITY_NAME);
+        return new Intent(ZXING_SCAN_ACTIVITY_NAME);
     }
 }

@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- https://developer.android.com/reference/android/app/AlarmManager.html#INTERVAL_DAY-->
-    <string-array name="background_duration_names">
-        <item>@string/interval_fifteen_minutes</item>
-        <item>@string/interval_half_hour</item>
-        <item>@string/interval_hour</item>
-        <item>@string/interval_half_day</item>
-        <item>@string/interval_day</item>
-    </string-array>
-    <string-array name="background_duration_values">
-        <item>900000</item>
-        <item>1800000</item>
-        <item>3600000</item>
-        <item>43200000</item>
-        <item>86400000</item>
-    </string-array>
 </resources>
