@@ -3,12 +3,10 @@ package co.svbnet.tracknz.fragment;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -66,6 +64,7 @@ public class PackageInfoFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         if (getArguments() != null) {
             mPackage = getArguments().getParcelable(ARG_PACKAGE);
             if (mPackage.hasPendingEvents()) {
@@ -93,9 +92,21 @@ public class PackageInfoFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
+    }
+
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        inflater.inflate(R.menu.menu_package_info, menu);
+        // Only inflate if the fragment is visible -- this prevents the menu from showing when going
+        // landscape to portrait
+        if (isVisible()) {
+            inflater.inflate(R.menu.menu_package_info, menu);
+        }
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -216,4 +227,5 @@ public class PackageInfoFragment extends Fragment {
         super.onAttach(context);
         db = new TrackingDB(context);
     }
+
 }

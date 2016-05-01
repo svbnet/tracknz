@@ -4,15 +4,17 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -31,14 +33,11 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import co.svbnet.tracknz.R;
-import co.svbnet.tracknz.activity.CodeInputActivity;
-import co.svbnet.tracknz.activity.PackageInfoActivity;
 import co.svbnet.tracknz.adapter.TrackedPackagesArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.tasks.PackageUpdateTask;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
-import co.svbnet.tracknz.util.BarcodeScannerUtil;
 import co.svbnet.tracknz.util.CodeValidationUtil;
 
 public class PackageListFragment extends Fragment {
@@ -67,6 +66,37 @@ public class PackageListFragment extends Fragment {
         return new PackageListFragment();
     }
 
+    public void initiateRefresh() {
+        swipeRefreshLayout.setRefreshing(true);
+        refreshTask = new MainPackageRefreshTask(new NZPostTrackingService());
+        refreshTask.execute();
+    }
+
+    public void initiateClearAllDelivered() {
+        final List<String> packagesToDelete = db.getDeliveredPackageCodes();
+        if (packagesToDelete.size() == 0) return;
+        new AlertDialog.Builder(getContext())
+                .setTitle(R.string.title_delete_packages)
+                .setMessage(getContext().getString(R.string.message_delete_all_delivered_packages))
+                .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        for (String code : packagesToDelete) {
+                            db.deletePackage(code);
+                        }
+                        updateItems();
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -88,8 +118,15 @@ public class PackageListFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d("PackageListFragment", "onCreateView()");
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_package_list, container, false);
         ButterKnife.bind(this, view);
@@ -113,6 +150,36 @@ public class PackageListFragment extends Fragment {
         adapter.notifyDataSetChanged();
         updateWidgetStates(view);
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_refresh:
+                initiateRefresh();
+                break;
+
+            case R.id.action_clear_done:
+                initiateClearAllDelivered();
+                break;
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        if (isVisible()) {
+            inflater.inflate(R.menu.menu_package_list, menu);
+        }
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @OnClick(R.id.fab_enter)
@@ -141,7 +208,8 @@ public class PackageListFragment extends Fragment {
 
     @OnItemClick(R.id.packages)
     public void onPackagesListViewItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (getContext().getResources().getBoolean(R.bool.display_two_panes)) {
+        if (getContext().getResources().getBoolean(R.bool.is_tablet) &&
+                getContext().getResources().getBoolean(R.bool.is_landscape)) {
             if (lastSelected != null) {
                 lastSelected.setBackgroundResource(android.R.color.transparent);
             }
@@ -249,7 +317,8 @@ public class PackageListFragment extends Fragment {
                 for (NZPostTrackedPackage uitem : updatedPackages) {
                     if (item.getTrackingCode().equals(uitem.getTrackingCode())) {
                         adapterItems.set(adapterItems.indexOf(item), uitem);
-                        if (context.getResources().getBoolean(R.bool.display_two_panes)) {
+                        if (context.getResources().getBoolean(R.bool.is_tablet) &&
+                                context.getResources().getBoolean(R.bool.is_landscape)) {
                             if (item.getTrackingCode().equals(lastSelectedCode)) {
                                 mListener.onItemClicked(uitem);
                             }

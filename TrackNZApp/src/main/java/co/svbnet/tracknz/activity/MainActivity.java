@@ -1,50 +1,25 @@
 package co.svbnet.tracknz.activity;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
-import android.util.SparseBooleanArray;
-import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.FrameLayout;
-import android.widget.ListView;
-
-import com.getbase.floatingactionbutton.FloatingActionButton;
-import com.getbase.floatingactionbutton.FloatingActionsMenu;
-
-import java.net.ConnectException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.OnItemClick;
 import co.svbnet.tracknz.R;
-import co.svbnet.tracknz.adapter.TrackedPackagesArrayAdapter;
-import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.fragment.PackageInfoFragment;
 import co.svbnet.tracknz.fragment.PackageListFragment;
-import co.svbnet.tracknz.tasks.PackageUpdateTask;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
-import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.BarcodeScannerUtil;
 import co.svbnet.tracknz.util.CodeValidationUtil;
-import co.svbnet.tracknz.util.PackageModifyUtil;
-import co.svbnet.tracknz.util.ShareUtil;
 
 
 public class MainActivity extends ToolbarActivity implements PackageListFragment.OnPackageListInteraction {
@@ -54,23 +29,80 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
     public static final int REQUEST_TRACKING_CODES = 1;
     public static final int REQUEST_BARCODE = 2;
 
-    @Nullable
-    @Bind(R.id.info_fragment_container)
-    FrameLayout infoFragmentContainer;
-    @Nullable
-    @Bind(R.id.unselected_view)
-    View unselectedView;
+    @Nullable @Bind(R.id.info_fragment_container) FrameLayout infoFragmentContainer;
+    @Bind(R.id.fragment_container) FrameLayout mFragmentContainer;
+    //@Nullable @Bind(R.id.unselected_view) View unselectedView;
 
+    private boolean displayTwoPanes;
+    private boolean isTablet;
+    private boolean isLandscape;
+    private boolean isShowingFullPackage;
+
+    private NZPostTrackedPackage selectedPackage;
+
+    PackageListFragment mListFragment;
     PackageInfoFragment mInfoFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentViewAndToolbar(R.layout.activity_main);
-        setTitle(R.string.title_activity_main);
+        isTablet = getResources().getBoolean(R.bool.is_tablet);
+        isLandscape = getResources().getBoolean(R.bool.is_landscape);
+        displayTwoPanes = isTablet && isLandscape;
+        setContentViewAndToolbar(R.layout.activity_main_master_detail);
         ButterKnife.bind(this);
+        applyActionBar();
+        mListFragment = PackageListFragment.newInstance();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, mListFragment)
+                .commit();
 
+        // Tablet in portrait mode and with a selected package
+        // fragmentContainer is left-hand container on MDV, main container in single view
+        isShowingFullPackage = isTablet && !isLandscape && selectedPackage != null;
+        applyContainerVisibility();
     }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        selectedPackage = savedInstanceState.getParcelable("currentPackage");
+        if (selectedPackage != null) {
+            showPackageInInfoFragment(selectedPackage);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+        outState.putParcelable("currentPackage", selectedPackage);
+        super.onSaveInstanceState(outState);
+    }
+
+//    private void showListInMain() {
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+//        setTitle(R.string.title_activity_main);
+//        mListFragment = PackageListFragment.newInstance();
+//        getSupportFragmentManager()
+//                .beginTransaction()
+//                .setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_fast)
+//                .replace(R.id.fragment_container, mListFragment)
+//                .commit();
+//        selectedPackage = null;
+//    }
+//
+//    private void showFullPackage() {
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        setTitle(R.string.title_activity_package_info);
+//        mInfoFragment = PackageInfoFragment.newInstance(selectedPackage);
+//        getSupportFragmentManager()
+//                .beginTransaction()
+//                .setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_fast)
+//                .replace(R.id.fragment_container, mInfoFragment)
+//                .commit();
+//        isShowingFullPackage = true;
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -79,84 +111,101 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
         return true;
     }
 
-    private NZPostTrackedPackage selectedPackage;
+    @Override
+    public void onBackPressed() {
+        if (isShowingFullPackage) {
+            goBack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private void goBack() {
+        selectedPackage = null;
+        applyContainerVisibility();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .remove(mInfoFragment)
+                .commit();
+        isShowingFullPackage = false;
+        applyActionBar();
+    }
 
     @Override
     public void onItemClicked(NZPostTrackedPackage trackedPackage) {
         selectedPackage = trackedPackage;
-        boolean displayTwoPanes = getResources().getBoolean(R.bool.display_two_panes);
-        if (displayTwoPanes) {
-            showPackageInInfoFragment(trackedPackage);
-        } else {
-            Intent intent = new Intent(this, PackageInfoActivity.class);
-            intent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, trackedPackage);
-            startActivity(intent);
-        }
+        showPackageInInfoFragment(selectedPackage);
+//        if (displayTwoPanes) {
+//            showPackageInInfoFragment(trackedPackage);
+//        } else {
+
+//            showFullPackage();
+//        }
     }
 
     private void showPackageInInfoFragment(NZPostTrackedPackage trackedPackage) {
-        if (unselectedView.getVisibility() != View.GONE) {
-            unselectedView.setVisibility(View.GONE);
-        }
-        if (infoFragmentContainer.getVisibility() != View.VISIBLE) {
-            infoFragmentContainer.setVisibility(View.VISIBLE);
-        }
         mInfoFragment = PackageInfoFragment.newInstance(trackedPackage);
+        applyContainerVisibility();
+        applyActionBar();
         getSupportFragmentManager()
                 .beginTransaction()
                 .setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_fast)
-
                 .replace(R.id.info_fragment_container, mInfoFragment)
                 .commit();
     }
 
+    private void applyActionBar() {
+        if (isShowingFullPackage) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            setTitle(selectedPackage.getTitle());
+        } else {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            setTitle(R.string.title_activity_main);
+        }
+    }
+
+    private void applyContainerVisibility() {
+        isShowingFullPackage = !displayTwoPanes && selectedPackage != null;
+        if (displayTwoPanes) {
+            mFragmentContainer.setVisibility(View.VISIBLE);
+            infoFragmentContainer.setVisibility(View.VISIBLE);
+        } else {
+            if (selectedPackage == null) {
+                mFragmentContainer.setVisibility(View.VISIBLE);
+                infoFragmentContainer.setVisibility(View.GONE);
+            } else {
+                mFragmentContainer.setVisibility(View.GONE);
+                infoFragmentContainer.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
     @Override
     public void requestManualEntry(@Nullable String code) {
-
+        Intent intent = new Intent(this, CodeInputActivity.class);
+        if (code != null) {
+            intent.putExtra(CodeInputActivity.CODE, code);
+        }
+        startActivityForResult(intent, REQUEST_TRACKING_CODES);
     }
 
     @Override
     public void requestBarcode() {
-
+        startActivityForResult(BarcodeScannerUtil.makeIntent(), REQUEST_BARCODE);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-//            case R.id.action_refresh:
-//                swipeRefreshLayout.setRefreshing(true);
-//                refreshTask = new MainPackageRefreshTask(new NZPostTrackingService());
-//                refreshTask.execute();
-//                break;
+            case android.R.id.home:
+                if (isShowingFullPackage) {
+                    goBack();
+                }
+                break;
 
             case R.id.action_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 break;
-
-//            case R.id.action_clear_done:
-//                final List<String> packagesToDelete = db.getDeliveredPackageCodes();
-//                if (packagesToDelete.size() == 0) return false;
-//                new AlertDialog.Builder(MainActivity.this)
-//                        .setTitle(R.string.title_delete_packages)
-//                        .setMessage(MainActivity.this.getString(R.string.message_delete_all_delivered_packages))
-//                        .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                for (String code : packagesToDelete) {
-//                                    db.deletePackage(code);
-//                                }
-//                                updateItems();
-//                                dialog.dismiss();
-//                            }
-//                        })
-//                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                dialog.dismiss();
-//                            }
-//                        })
-//                        .show();
-//                break;
 
             case R.id.action_about:
                 startActivity(new Intent(this, AboutActivity.class));
@@ -165,56 +214,54 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
         return super.onOptionsItemSelected(item);
     }
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        db.open();
-//        switch (requestCode) {
-//
-//            case REQUEST_BARCODE:
-//                if (resultCode == RESULT_OK) {
-//                    String code = data.getStringExtra(BarcodeScannerUtil.EXTRA_SCAN_RESULT);
-//                    if (!CodeValidationUtil.isValidCode(code)) {
-//                        new AlertDialog.Builder(this)
-//                                .setTitle(R.string.title_error)
-//                                .setMessage(Html.fromHtml(getString(R.string.error_code_scanned_invalid, code)))
-//                                .setPositiveButton(R.string.dialog_button_try_again, new DialogInterface.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(DialogInterface dialog, int which) {
-//                                        Intent zxingIntent = new Intent(BarcodeScannerUtil.ZXING_SCAN_ACTIVITY_NAME);
-//                                        startActivityForResult(zxingIntent, REQUEST_BARCODE);
-//                                        dialog.dismiss();
-//                                    }
-//                                })
-//                                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(DialogInterface dialog, int which) {
-//                                        dialog.dismiss();
-//                                    }
-//                                })
-//                                .show();
-//                    } else {
-//                        Intent intent = new Intent(this, CodeInputActivity.class);
-//                        intent.putExtra(CodeInputActivity.CODE, code);
-//                        startActivityForResult(intent, REQUEST_TRACKING_CODES);
-//                    }
-//                } else if (resultCode == RESULT_CANCELED) {
-//                    return;
-//                } else {
-//                    new AlertDialog.Builder(this)
-//                            .setTitle(R.string.title_error)
-//                            .setMessage(R.string.message_zxing_error)
-//                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-//                                @Override
-//                                public void onClick(DialogInterface dialog, int which) {
-//                                    dialog.dismiss();
-//                                }
-//                            })
-//                            .show();
-//                }
-//                break;
-//
-//        }
-//    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_BARCODE:
+                if (resultCode == RESULT_OK) {
+                    String code = data.getStringExtra(BarcodeScannerUtil.EXTRA_SCAN_RESULT);
+                    if (!CodeValidationUtil.isValidCode(code)) {
+                        new AlertDialog.Builder(this)
+                                .setTitle(R.string.title_error)
+                                .setMessage(Html.fromHtml(getString(R.string.error_code_scanned_invalid, code)))
+                                .setPositiveButton(R.string.dialog_button_try_again, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Intent zxingIntent = new Intent(BarcodeScannerUtil.ZXING_SCAN_ACTIVITY_NAME);
+                                        startActivityForResult(zxingIntent, REQUEST_BARCODE);
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .show();
+                    } else {
+                        Intent intent = new Intent(this, CodeInputActivity.class);
+                        intent.putExtra(CodeInputActivity.CODE, code);
+                        startActivityForResult(intent, REQUEST_TRACKING_CODES);
+                    }
+                } else if (resultCode == RESULT_CANCELED) {
+                    return;
+                } else {
+                    new AlertDialog.Builder(this)
+                            .setTitle(R.string.title_error)
+                            .setMessage(R.string.message_zxing_error)
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                }
+                break;
+
+        }
+    }
 
 //    private class PackagesMultiChoiceListener implements AbsListView.MultiChoiceModeListener {
 //

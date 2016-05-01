@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="horizontal" android:layout_width="match_parent"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
     <include
         android:layout_width="fill_parent"
@@ -12,12 +12,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/inc_toolbar">
-        <fragment
+        <FrameLayout
             android:layout_width="500dp"
             android:layout_height="match_parent"
-            android:name="co.svbnet.tracknz.fragment.PackageListFragment"
-            android:id="@+id/list_fragment"
-            tools:layout="@layout/fragment_package_list"
+            android:id="@+id/fragment_container"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:layout_alignParentBottom="true" />
@@ -26,27 +24,24 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:id="@+id/info_fragment_container"
-            android:visibility="gone"
-            android:layout_toRightOf="@+id/list_fragment" />
+            android:layout_toRightOf="@+id/fragment_container"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true" />
 
-        <View
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:id="@+id/unselected_view"
-            android:background="@color/selection"
-            android:layout_toRightOf="@+id/list_fragment" />
         <FrameLayout
             android:id="@+id/top_shadow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:foreground="@drawable/bottom_shadow"
             android:layout_alignParentTop="true" />
+
         <FrameLayout
             android:id="@+id/sep_shadow"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:foreground="@drawable/left_shadow"
-            android:layout_toRightOf="@+id/list_fragment" />
+            android:layout_toRightOf="@+id/fragment_container" />
     </RelativeLayout>
 </RelativeLayout>

@@ -1,0 +1,26 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+        <include
+            android:layout_width="fill_parent"
+            android:layout_height="?attr/actionBarSize"
+            layout="@layout/toolbar"
+            android:id="@+id/toolbar_include" />
+
+        <FrameLayout
+            android:foreground="@drawable/bottom_shadow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/fragment_container"
+            android:layout_below="@+id/toolbar_include" />
+
+        <FrameLayout
+            android:visibility="gone"
+            android:foreground="@drawable/bottom_shadow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/info_fragment_container"
+            android:layout_below="@+id/toolbar_include" />
+</LinearLayout>
