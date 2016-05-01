@@ -4,11 +4,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
-import android.text.Html;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -31,7 +29,6 @@ import co.svbnet.tracknz.tasks.PackageRetrievalTask;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
-import co.svbnet.tracknz.util.BarcodeScannerUtil;
 import co.svbnet.tracknz.util.CodeValidationUtil;
 
 public class AddCodeActivity extends ToolbarActivity {
@@ -81,34 +78,6 @@ public class AddCodeActivity extends ToolbarActivity {
             @Override
             public void onClick(View v) {
                 addTextViewEntry(null);
-            }
-        });
-        findViewById(R.id.scan_code).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!BarcodeScannerUtil.isBarcodeScannerInstalled(getPackageManager())) {
-                    new AlertDialog.Builder(AddCodeActivity.this)
-                            .setTitle(R.string.title_zxing_not_installed)
-                            .setMessage(R.string.message_zxing_not_installed)
-                            .setPositiveButton(R.string.dialog_button_get_app, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent gpmIntent = new Intent(Intent.ACTION_VIEW);
-                                    gpmIntent.setData(Uri.parse("market://details?id=com.google.zxing.client.android"));
-                                    startActivity(gpmIntent);
-                                }
-                            })
-                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .show();
-                } else {
-                    Intent zxingIntent = new Intent(BarcodeScannerUtil.ZXING_SCAN_ACTIVITY_NAME);
-                    startActivityForResult(zxingIntent, REQUEST_BARCODE);
-                }
             }
         });
     }
@@ -208,50 +177,6 @@ public class AddCodeActivity extends ToolbarActivity {
 
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_BARCODE) {
-            if (resultCode == RESULT_OK) {
-                String code = data.getStringExtra("SCAN_RESULT");
-                if (!CodeValidationUtil.isValidCode(code)) {
-                    new AlertDialog.Builder(this)
-                            .setTitle(R.string.title_error)
-                            .setMessage(Html.fromHtml(getString(R.string.error_code_scanned_invalid, code)))
-                            .setPositiveButton(R.string.dialog_button_try_again, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent zxingIntent = new Intent(BarcodeScannerUtil.ZXING_SCAN_ACTIVITY_NAME);
-                                    startActivityForResult(zxingIntent, REQUEST_BARCODE);
-                                    dialog.dismiss();
-                                }
-                            })
-                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .show();
-                } else {
-                    addTextViewEntry(code);
-                }
-            } else if (resultCode == RESULT_CANCELED) {
-                return;
-            } else {
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.title_error)
-                        .setMessage(R.string.message_zxing_error)
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .show();
-            }
-        }
     }
 
     private class RetrievePackagesTask extends PackageRetrievalTask {

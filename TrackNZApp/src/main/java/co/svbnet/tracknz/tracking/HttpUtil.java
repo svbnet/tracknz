@@ -14,10 +14,11 @@ public class HttpUtil {
      * The HTTP user agent header value to send when making an API request.
      */
     public static final String USER_AGENT = "TrackNZ/" + BuildConfig.VERSION_NAME;
-
+    public static final int TIMEOUT = 10000;
     public static String downloadString(URL url) throws IOException {
         URLConnection connection = url.openConnection();
         connection.setRequestProperty("User-Agent", USER_AGENT);
+        connection.setConnectTimeout(TIMEOUT);
         String line, jsonString = "";
         BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         // Try-with-resources can only be used with API level > 19

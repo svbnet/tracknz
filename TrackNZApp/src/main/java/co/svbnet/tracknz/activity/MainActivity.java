@@ -1,9 +1,7 @@
 package co.svbnet.tracknz.activity;
 
-import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -13,6 +11,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import co.svbnet.tracknz.R;
@@ -20,7 +21,6 @@ import co.svbnet.tracknz.fragment.PackageInfoFragment;
 import co.svbnet.tracknz.fragment.PackageListFragment;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.ui.ToolbarActivity;
-import co.svbnet.tracknz.util.BarcodeScannerUtil;
 import co.svbnet.tracknz.util.CodeValidationUtil;
 
 
@@ -198,31 +198,8 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
     }
 
     private void requestScan() {
-        if (!BarcodeScannerUtil.isBarcodeScannerInstalled(getPackageManager())) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.title_zxing_not_installed)
-                    .setMessage(R.string.message_zxing_not_installed)
-                    .setPositiveButton(R.string.dialog_button_get_app, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            try {
-                                startActivity(
-                                        new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + BarcodeScannerUtil.ZXING_SCAN_APP_ID)));
-                            } catch (ActivityNotFoundException anfe) {
-
-                            }
-                        }
-                    })
-                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    })
-                    .show();
-        } else {
-            startActivityForResult(BarcodeScannerUtil.makeIntent(), REQUEST_BARCODE);
-        }
+        IntentIntegrator integrator = new IntentIntegrator(this);
+        integrator.initiateScan();
     }
 
     @Override
@@ -247,51 +224,35 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_BARCODE:
-                if (resultCode == RESULT_OK) {
-                    String code = data.getStringExtra(BarcodeScannerUtil.EXTRA_SCAN_RESULT);
-                    if (!CodeValidationUtil.isValidCode(code)) {
-                        new AlertDialog.Builder(this)
-                                .setTitle(R.string.title_error)
-                                .setMessage(Html.fromHtml(getString(R.string.error_code_scanned_invalid, code)))
-                                .setPositiveButton(R.string.dialog_button_try_again, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        Intent zxingIntent = new Intent(BarcodeScannerUtil.ZXING_SCAN_ACTIVITY_NAME);
-                                        startActivityForResult(zxingIntent, REQUEST_BARCODE);
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .show();
-                    } else {
-                        Intent intent = new Intent(this, CodeInputActivity.class);
-                        intent.putExtra(CodeInputActivity.CODE, code);
-                        startActivityForResult(intent, REQUEST_TRACKING_CODES);
-                    }
-                } else if (resultCode == RESULT_CANCELED) {
-                    return;
-                } else {
-                    new AlertDialog.Builder(this)
-                            .setTitle(R.string.title_error)
-                            .setMessage(R.string.message_zxing_error)
-                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .show();
-                }
-                break;
-
+        IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (scanResult != null) {
+            return;
         }
+        String code = scanResult.getContents();
+        if (!CodeValidationUtil.isValidCode(code)) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.title_error)
+                    .setMessage(Html.fromHtml(getString(R.string.error_code_scanned_invalid, code)))
+                    .setPositiveButton(R.string.dialog_button_try_again, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            requestScan();
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+        } else {
+            Intent intent = new Intent(this, CodeInputActivity.class);
+            intent.putExtra(CodeInputActivity.CODE, code);
+            startActivityForResult(intent, REQUEST_TRACKING_CODES);
+        }
+
     }
 
 //    private class PackagesMultiChoiceListener implements AbsListView.MultiChoiceModeListener {

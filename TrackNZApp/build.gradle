@@ -58,4 +58,5 @@ dependencies {
     compile 'com.getbase:floatingactionbutton:1.10.0'
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'com.android.support:support-v4:23.3.0'
+    compile 'com.google.zxing:android-integration:3.2.1'
 }
