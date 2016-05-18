@@ -14,4 +14,5 @@
 
     <color name="fab_actions_normal">#FAFAFA</color>
     <color name="fab_actions_pressed">#EEEEEE</color>
+    <color name="black_semi_transparent">#B2000000</color>
 </resources>

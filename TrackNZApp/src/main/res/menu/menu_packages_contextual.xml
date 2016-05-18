@@ -19,5 +19,4 @@
         android:title="@string/action_delete"
         android:icon="@drawable/ic_action_delete"
         app:showAsAction="ifRoom|withText" />
-
 </menu>

@@ -133,12 +133,12 @@ public class MainActivity extends ToolbarActivity
 
     private void goBack() {
         selectedPackage = null;
+        applyContainerVisibility();
         getSupportFragmentManager()
                 .beginTransaction()
                 .remove(mInfoFragment)
                 .commit();
         isShowingFullPackage = false;
-        applyContainerVisibility();
         applyActionBar();
     }
 
@@ -156,14 +156,13 @@ public class MainActivity extends ToolbarActivity
 
     private void showPackageInInfoFragment(NZPostTrackedPackage trackedPackage) {
         mInfoFragment = PackageInfoFragment.newInstance(trackedPackage);
-
+        applyContainerVisibility();
+        applyActionBar();
         getSupportFragmentManager()
                 .beginTransaction()
                 .setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_fast)
                 .replace(R.id.info_fragment_container, mInfoFragment)
                 .commit();
-        applyContainerVisibility();
-        applyActionBar();
     }
 
     private void applyActionBar() {
