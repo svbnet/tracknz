@@ -11,12 +11,15 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Log;
+import android.util.SparseBooleanArray;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
@@ -39,62 +42,38 @@ import co.svbnet.tracknz.tasks.PackageUpdateTask;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.util.CodeValidationUtil;
+import co.svbnet.tracknz.util.PackageModifyUtil;
+import co.svbnet.tracknz.util.ShareUtil;
 
 public class PackageListFragment extends Fragment {
 
+    /* View bindings */
     @Bind(R.id.add_button) FloatingActionsMenu addFloatingButton;
     @Bind(R.id.fab_new_from_clipboard) FloatingActionButton pasteFloatingButton;
     @Bind(R.id.packages_container) SwipeRefreshLayout swipeRefreshLayout;
     @Bind(R.id.packages) ListView listView;
 
-    // Data references
-    private TrackingDB db;
-    private TrackedPackagesArrayAdapter adapter;
-    private List<NZPostTrackedPackage> adapterItems = new ArrayList<>();
-
-    // Refresh task reference
-    private MainPackageRefreshTask refreshTask;
-
+    /* Private fields */
+    private TrackingDB mDb;
+    private TrackedPackagesArrayAdapter mAdapter;
+    private List<NZPostTrackedPackage> mAdapterItems = new ArrayList<>();
+    private MainPackageRefreshTask mRefreshTask;
     private OnPackageListInteraction mListener;
 
+    /* Fragment methods */
     public PackageListFragment() {
         // Required empty public constructor
+    }
+
+    public interface OnPackageListInteraction {
+        void onItemClicked(NZPostTrackedPackage trackedPackage);
+        void requestManualEntry(@Nullable String code);
+        void requestBarcode();
     }
 
     public static PackageListFragment newInstance() {
         // No init arguments
         return new PackageListFragment();
-    }
-
-    public void initiateRefresh() {
-        swipeRefreshLayout.setRefreshing(true);
-        refreshTask = new MainPackageRefreshTask(new NZPostTrackingService());
-        refreshTask.execute();
-    }
-
-    public void initiateClearAllDelivered() {
-        final List<String> packagesToDelete = db.getDeliveredPackageCodes();
-        if (packagesToDelete.size() == 0) return;
-        new AlertDialog.Builder(getContext())
-                .setTitle(R.string.title_delete_packages)
-                .setMessage(getContext().getString(R.string.message_delete_all_delivered_packages))
-                .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        for (String code : packagesToDelete) {
-                            db.deletePackage(code);
-                        }
-                        updateItems();
-                        dialog.dismiss();
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .show();
     }
 
     @Override
@@ -106,15 +85,15 @@ public class PackageListFragment extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement OnPackageListInteraction");
         }
-        db = new TrackingDB(context);
+        mDb = new TrackingDB(context);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        db.close();
-        db = null;
+        mDb.close();
+        mDb = null;
     }
 
     @Override
@@ -135,19 +114,19 @@ public class PackageListFragment extends Fragment {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                refreshTask = new MainPackageRefreshTask(new NZPostTrackingService());
-                refreshTask.execute();
+                mRefreshTask = new MainPackageRefreshTask(new NZPostTrackingService());
+                mRefreshTask.execute();
             }
         });
 
         // create packages list view adapter
-        adapter = new TrackedPackagesArrayAdapter(getContext(), adapterItems);
-        listView.setAdapter(adapter);
+        mAdapter = new TrackedPackagesArrayAdapter(getContext(), mAdapterItems);
+        listView.setAdapter(mAdapter);
         //listView.setMultiChoiceModeListener(new PackagesMultiChoiceListener());
 
         // update set view items
-        adapterItems.addAll(db.findAllPackages());
-        adapter.notifyDataSetChanged();
+        mAdapterItems.addAll(mDb.findAllPackages());
+        mAdapter.notifyDataSetChanged();
         updateWidgetStates(view);
         return view;
     }
@@ -216,7 +195,7 @@ public class PackageListFragment extends Fragment {
             view.setBackgroundResource(R.color.selection);
             lastSelected = view;
         }
-        NZPostTrackedPackage selectedPackage = adapterItems.get(position);
+        NZPostTrackedPackage selectedPackage = mAdapterItems.get(position);
         lastSelectedCode = selectedPackage.getTrackingCode();
         mListener.onItemClicked(selectedPackage);
     }
@@ -234,6 +213,37 @@ public class PackageListFragment extends Fragment {
         return null;
     }
 
+    private void initiateRefresh() {
+        swipeRefreshLayout.setRefreshing(true);
+        mRefreshTask = new MainPackageRefreshTask(new NZPostTrackingService());
+        mRefreshTask.execute();
+    }
+
+    private void initiateClearAllDelivered() {
+        final List<String> packagesToDelete = mDb.getDeliveredPackageCodes();
+        if (packagesToDelete.size() == 0) return;
+        new AlertDialog.Builder(getContext())
+                .setTitle(R.string.title_delete_packages)
+                .setMessage(getContext().getString(R.string.message_delete_all_delivered_packages))
+                .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        for (String code : packagesToDelete) {
+                            mDb.deletePackage(code);
+                        }
+                        updateItems();
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
+    }
+
     private void checkIfCodeIsOnClipboard() {
         if (getClipboardTrackingCode() != null) {
             pasteFloatingButton.setVisibility(View.VISIBLE);
@@ -246,7 +256,7 @@ public class PackageListFragment extends Fragment {
      * Enables or disables menu items based on if there are existing packages.
      */
     private void updateWidgetStates(View view) {
-        if (adapterItems.size() > 0) {
+        if (mAdapterItems.size() > 0) {
             view.findViewById(R.id.empty_list_text).setVisibility(View.GONE);
             swipeRefreshLayout.setVisibility(View.VISIBLE);
         } else {
@@ -257,13 +267,21 @@ public class PackageListFragment extends Fragment {
 
     private void updateItems() {
         updateWidgetStates(getView());
-        adapter.notifyDataSetChanged();
+        mAdapter.notifyDataSetChanged();
     }
 
-    public interface OnPackageListInteraction {
-        void onItemClicked(NZPostTrackedPackage trackedPackage);
-        void requestManualEntry(@Nullable String code);
-        void requestBarcode();
+    public void removeItemFromList(String code) {
+        int itemIndex = -1;
+        for (int i = 0; i < mAdapterItems.size(); i++) {
+            if (mAdapterItems.get(i).getTrackingCode().equals(code)) {
+                itemIndex = i;
+                break;
+            }
+        }
+        if (itemIndex > -1) {
+            mAdapterItems.remove(itemIndex);
+        }
+        updateItems();
     }
 
     private class MainPackageRefreshTask extends PackageUpdateTask {
@@ -272,7 +290,7 @@ public class PackageListFragment extends Fragment {
          * Constructs a new instance of a MainPackageRefreshTask for this activity.
          */
         public MainPackageRefreshTask(NZPostTrackingService service) {
-            super(service, PackageListFragment.this.getContext(), PackageListFragment.this.db, null);
+            super(service, PackageListFragment.this.getContext(), PackageListFragment.this.mDb, null);
         }
 
         @Override
@@ -313,10 +331,10 @@ public class PackageListFragment extends Fragment {
 
         @Override
         protected void onPackagesInserted(List<NZPostTrackedPackage> updatedPackages) {
-            for (NZPostTrackedPackage item : adapterItems) {
+            for (NZPostTrackedPackage item : mAdapterItems) {
                 for (NZPostTrackedPackage uitem : updatedPackages) {
                     if (item.getTrackingCode().equals(uitem.getTrackingCode())) {
-                        adapterItems.set(adapterItems.indexOf(item), uitem);
+                        mAdapterItems.set(mAdapterItems.indexOf(item), uitem);
                         if (context.getResources().getBoolean(R.bool.is_tablet) &&
                                 context.getResources().getBoolean(R.bool.is_landscape)) {
                             if (item.getTrackingCode().equals(lastSelectedCode)) {
@@ -351,6 +369,130 @@ public class PackageListFragment extends Fragment {
                         })
                         .show();
             }
+        }
+    }
+    private class PackagesMultiChoiceListener implements AbsListView.MultiChoiceModeListener {
+
+        private List<Integer> getIndicesOfCheckedItems(SparseBooleanArray items) {
+            List<Integer> indices = new ArrayList<>();
+            for (int i = 0; i < items.size(); i++) {
+                if (items.valueAt(i)) {
+                    indices.add(items.keyAt(i));
+                }
+            }
+            return indices;
+        }
+
+        @Override
+        public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+            int checkedItems = listView.getCheckedItemCount();
+            // If no items are selected, don't update to avoid awkward fade-out transition
+            if (checkedItems >= 1) {
+                mode.setTitle(getString(R.string.actionmode_selected, checkedItems));
+                // Apply visibility settings to singular menu items
+            }
+        }
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            mode.getMenuInflater().inflate(R.menu.menu_packages_contextual, menu);
+            // Hide FAB when in CAB mode
+            addFloatingButton.setVisibility(View.GONE);
+            // Stop refreshing
+            if (mRefreshTask != null) {
+                mRefreshTask.cancel(true);
+                swipeRefreshLayout.setRefreshing(false);
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_set_label:
+                    // "There can only be one" - Gwen Stefani, from Hollaback Girl
+                    int itemId = getIndicesOfCheckedItems(listView.getCheckedItemPositions()).get(0);
+                    final NZPostTrackedPackage trackedPackage = mAdapterItems.get(itemId);
+                    PackageModifyUtil.editLabel(getContext(), mDb, trackedPackage, new PackageModifyUtil.LabelEditComplete() {
+                        @Override
+                        public void onLabelEditComplete(String newLabel) {
+                            mode.finish();
+                            updateItems();
+                        }
+                    });
+                    break;
+
+                case R.id.action_share:
+                    List<Integer> shareIds = getIndicesOfCheckedItems(listView.getCheckedItemPositions());
+                    String codes = "";
+                    for (Integer id : shareIds) {
+                            codes += mAdapterItems.get(id).getTrackingCode() + "\n";
+                    }
+                    ShareUtil.shareCode(getActivity(), codes);
+                    break;
+
+                case R.id.action_delete:
+                    final List<Integer> delItemIds = getIndicesOfCheckedItems(listView.getCheckedItemPositions());
+                    final List<NZPostTrackedPackage> packagesToDelete = new ArrayList<>();
+                    StringBuilder sb = new StringBuilder();
+                    for (Integer id : delItemIds) {
+                        NZPostTrackedPackage selectedItem = mAdapterItems.get(id);
+                        packagesToDelete.add(selectedItem);
+                        sb.append("<b>");
+                        if (selectedItem.getLabel() == null) {
+                            sb.append(selectedItem.getTrackingCode());
+                            sb.append("</b>");
+                        } else {
+                            sb.append(selectedItem.getLabel());
+                            sb.append("</b>");
+                            sb.append(" (");
+                            sb.append(selectedItem.getTrackingCode());
+                            sb.append(")");
+                        }
+                        sb.append("<br>");
+                    }
+                    sb.append("<br>");
+                    int itemsSize = delItemIds.size();
+                    String msg;
+                    if (itemsSize == 1) {
+                        msg = getContext().getString(R.string.message_delete_package, sb.toString()).replace("<br>", "");
+                    } else {
+                        msg = getContext().getString(R.string.message_delete_packages, sb.toString());
+                    }
+                    new AlertDialog.Builder(getContext())
+                            .setTitle(R.string.title_delete_packages)
+                            .setMessage(Html.fromHtml(msg))
+                            .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    for (NZPostTrackedPackage id : packagesToDelete) {
+                                            mDb.deletePackage(id.getTrackingCode());
+                                    }
+                                    updateItems();
+                                    dialog.dismiss();
+                                    mode.finish();
+                                }
+                            })
+                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                    break;
+            }
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            addFloatingButton.setVisibility(View.VISIBLE);
         }
     }
 

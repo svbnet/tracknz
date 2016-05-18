@@ -29,7 +29,7 @@ public class AboutActivity extends ToolbarActivity {
         findViewById(R.id.website_action).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://svbnet.co")));
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://svbnet.co")));
             }
         });
         findViewById(R.id.credits_action).setOnClickListener(new View.OnClickListener() {

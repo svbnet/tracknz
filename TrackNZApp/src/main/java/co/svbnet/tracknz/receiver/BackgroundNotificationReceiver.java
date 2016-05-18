@@ -25,7 +25,6 @@ import java.util.List;
 import co.svbnet.tracknz.PreferenceKeys;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.activity.MainActivity;
-import co.svbnet.tracknz.activity.PackageInfoActivity;
 import co.svbnet.tracknz.tasks.PackageUpdateTask;
 import co.svbnet.tracknz.tracking.PackageFlag;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
@@ -40,8 +39,23 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
     private static final String TAG = "BackgroundReceiver";
     private static final String GROUP_KEY_PACKAGES = "group_key_packages";
     private static final int NOTIFICATION_ID = 0;
+    /**
+     * The icon's size in dip units
+     */
     private static final int NOTIFICATION_LARGE_ICON_SIZE_DP = 48;
 
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        Log.i(TAG, "Alarm triggered");
+        new NotificationCheckTask(new NZPostTrackingService(), context).execute();
+    }
+
+    /**
+     * Creates a round icon symbolising a package event flag.
+     * @param context The context to acquire resources from.
+     * @param flag The flag to draw.
+     * @return A bitmap the size of {@link BackgroundNotificationReceiver#NOTIFICATION_LARGE_ICON_SIZE_DP}.
+     */
     private Bitmap createNotificationLargeIcon(Context context, int flag) {
         Resources contextResources = context.getResources();
         // Get dimensions of icon appropriate for the device's screen density
@@ -70,6 +84,14 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         return bitmap;
     }
 
+    /**
+     * Builds a notification for a single package. This allows for more information about the package
+     * in a single notification.
+     * @param context The context to create the notification with.
+     * @param builder A Builder to build on.
+     * @param pkg The package to notify about.
+     * @return A new Notification that can be displayed.
+     */
     private Notification buildSingleNotification(Context context, NotificationCompat.Builder builder, NZPostTrackedPackage pkg) {
         // Retrieve latest event
         NZPostTrackingEvent latestEvent = pkg.getMostRecentEvent();
@@ -84,14 +106,22 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
                 .setWhen(latestEvent.getDate().getTime());
 
         // Create the intent for the package info activity
-        Intent packageInfoIntent = new Intent(context, PackageInfoActivity.class);
-        packageInfoIntent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, pkg);
+        Intent packageInfoIntent = new Intent(context, MainActivity.class);
+        packageInfoIntent.putExtra(MainActivity.CURRENT_PACKAGE, pkg);
         builder.setContentIntent(PendingIntent.getActivity(context, 0, packageInfoIntent, PendingIntent.FLAG_ONE_SHOT));
 
         // Build notification
         return builder.build();
     }
 
+    /**
+     * Builds a notification for many packages. This shows a simple title and message, but can be
+     * pulled down to reveal which packages were updated.
+     * @param context The context to create the notification with.
+     * @param builder A Builder to build on.
+     * @param packages The packages to notify about.
+     * @return A new Notification that can be displayed.
+     */
     private Notification buildMultipleNotification(Context context, NotificationCompat.Builder builder, List<NZPostTrackedPackage> packages) {
         // Inbox style is presented as a list of items which is revealed when the user pulls down
         // on the notification
@@ -119,6 +149,13 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
         return builder.build();
     }
 
+    /**
+     * Builds a notification based on a list of packages, first setting defaults specified in code
+     * and shared preferences.
+     * @param context The context to use.
+     * @param packages The packages to notify about.
+     * @return A notification that can be displayed.
+     */
     private Notification buildNotification(Context context, List<NZPostTrackedPackage> packages) {
         // Build notification with rudimentary options
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
@@ -166,12 +203,6 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
             NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(NOTIFICATION_ID, buildNotification(context, updatedPackages));
         }
-    }
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        Log.i(TAG, "Alarm triggered");
-        new NotificationCheckTask(new NZPostTrackingService(), context).execute();
     }
 
 }

@@ -1,24 +1,36 @@
 package co.svbnet.tracknz.activity;
 
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
+import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.net.ConnectException;
+import java.util.List;
 
 import co.svbnet.tracknz.BackgroundRefreshManager;
 import co.svbnet.tracknz.BuildConfig;
 import co.svbnet.tracknz.PreferenceKeys;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.data.TrackingDB;
+import co.svbnet.tracknz.tasks.PackageRetrievalTask;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 
 /**
  * Activity which enables the user to edit the app's preferences.
  */
 public class SettingsActivity extends ToolbarActivity {
+
+    private static final String TAG = SettingsActivity.class.getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +39,8 @@ public class SettingsActivity extends ToolbarActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
-    public static class SettingsFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
+    public static class SettingsFragment extends PreferenceFragment
+            implements SharedPreferences.OnSharedPreferenceChangeListener {
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -35,38 +48,6 @@ public class SettingsActivity extends ToolbarActivity {
             addPreferencesFromResource(R.xml.preferences);
 
             if (BuildConfig.DEBUG) {
-                final String[] dummyCodes = new String[]{
-                        "AA000111222BB",
-                        "XX010101010YY",
-                        "AB288037891CD",
-                        "CC999999999DD",
-                        "ZZ000000000ZZ",
-                };
-
-                Preference.OnPreferenceClickListener listener = new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(Preference preference) {
-                        String[] codes = null;
-                        Intent intent = new Intent(getActivity(), AddCodeActivity.class);
-                        switch (preference.getOrder()) {
-                            case 0:
-                                codes = dummyCodes;
-                                break;
-
-                            case 1:
-                                codes = new String[]{"INVALID"};
-                                break;
-
-                            case 2:
-                                codes = new String[]{"INVALIDEN"};
-                                break;
-                        }
-                        intent.putExtra("co.svbnet.tracknz.DEBUG_DUMMY_CODES", codes);
-                        startActivity(intent);
-                        return true;
-                    }
-                };
-
                 // Base debug category
                 PreferenceCategory debugCategory = new PreferenceCategory(getActivity());
                 debugCategory.setTitle("Debug utils");
@@ -76,22 +57,28 @@ public class SettingsActivity extends ToolbarActivity {
                 Preference debugItemsPreference = new Preference(getActivity());
                 debugItemsPreference.setTitle("Insert dummy codes");
                 debugItemsPreference.setSummary("Dummy codes w/out invalid code");
-                debugItemsPreference.setOnPreferenceClickListener(listener);
+                debugItemsPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        new DebugPackageRetrieveTask(new NZPostTrackingService());
+                        return true;
+                    }
+                });
                 debugCategory.addPreference(debugItemsPreference);
 
-                // Test invalid handling
-                Preference invalidHandlingPreference = new Preference(getActivity());
-                invalidHandlingPreference.setTitle("Insert invalid package");
-                invalidHandlingPreference.setSummary("Inserts invalid code");
-                invalidHandlingPreference.setOnPreferenceClickListener(listener);
-                debugCategory.addPreference(invalidHandlingPreference);
-
-                // Rectify invalid
-                Preference rectifyInvalidPreference = new Preference(getActivity());
-                rectifyInvalidPreference.setTitle("Insert invalid package fix");
-                rectifyInvalidPreference.setSummary("Inserts code which makes invalid code valid");
-                rectifyInvalidPreference.setOnPreferenceClickListener(listener);
-                debugCategory.addPreference(rectifyInvalidPreference);
+                // Test notifications
+                Preference testNotificationPreference = new Preference(getActivity());
+                testNotificationPreference.setTitle("Test notifications");
+                testNotificationPreference.setSummary("Notifications now please.");
+                testNotificationPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        Intent alarmIntent = new Intent(BackgroundRefreshManager.INTENT_START_ALARM);
+                        getActivity().getApplication().sendBroadcast(alarmIntent);
+                        return true;
+                    }
+                });
+                debugCategory.addPreference(testNotificationPreference);
 
                 // Reset DB
                 Preference resetDbPreference = new Preference(getActivity());
@@ -108,20 +95,6 @@ public class SettingsActivity extends ToolbarActivity {
                     }
                 });
                 debugCategory.addPreference(resetDbPreference);
-
-                // Test notifications
-                Preference testNotificationPreference = new Preference(getActivity());
-                testNotificationPreference.setTitle("Test notifications");
-                testNotificationPreference.setSummary("Notifications now please.");
-                testNotificationPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(Preference preference) {
-                        Intent alarmIntent = new Intent(BackgroundRefreshManager.INTENT_START_ALARM);
-                        getActivity().getApplication().sendBroadcast(alarmIntent);
-                        return true;
-                    }
-                });
-                debugCategory.addPreference(testNotificationPreference);
 
             }
         }
@@ -146,6 +119,103 @@ public class SettingsActivity extends ToolbarActivity {
                     break;
             }
         }
-    }
 
+        private class DebugPackageRetrieveTask extends PackageRetrievalTask {
+
+            private ProgressDialog progressDialog;
+            private TrackingDB db;
+
+            public DebugPackageRetrieveTask(NZPostTrackingService service) {
+                super(service);
+                progressDialog = new ProgressDialog(getContext());
+                progressDialog.setMessage(getString(R.string.message_getting_package_information));
+                progressDialog.setCancelable(false);
+                db = new TrackingDB(getContext());
+            }
+
+            @Override
+            protected void onPreExecute() {
+                progressDialog.show();
+                super.onPreExecute();
+            }
+
+            @Override
+            protected List<NZPostTrackedPackage> doInBackground(String... params) {
+                List<String> codes = null;
+                try {
+                    codes = new NZPostTrackingService()._retrieveDebugCodes();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                String[] ccArray = new String[codes.size()];
+                codes.toArray(ccArray);
+                return super.doInBackground(ccArray);
+            }
+
+            @Override
+            protected void onException(Exception ex) {
+                String errorMessage = getString(R.string.message_unknown_error,
+                        ex.getClass().getName(), ex.getMessage());
+                if (ex instanceof ConnectException) {
+                    errorMessage = getString(R.string.message_error_no_connection);
+                }
+                new AlertDialog.Builder(getContext())
+                        .setTitle(R.string.title_error)
+                        .setMessage(errorMessage)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+            }
+
+            @Override
+            protected void onPostExecute(List<NZPostTrackedPackage> trackedPackages) {
+                progressDialog.hide();
+                super.onPostExecute(trackedPackages);
+            }
+
+            @Override
+            protected void onSuccess(List<NZPostTrackedPackage> retrievedPackages) {
+                for (final NZPostTrackedPackage retrievedPackage : retrievedPackages) {
+                    if (retrievedPackage.getErrorCode() != null) {
+                        if (retrievedPackage.getErrorCode().equals("N")) {
+                            new AlertDialog.Builder(getContext())
+                                    .setTitle(R.string.title_nzp_error)
+                                    .setMessage(getString(R.string.message_add_nonexistent_package, retrievedPackage.getTrackingCode()))
+                                    .setPositiveButton(R.string.dialog_button_yes_add, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            db.insertPackage(retrievedPackage);
+                                            dialog.dismiss();
+                                        }
+                                    })
+                                    .setNegativeButton(R.string.dialog_button_dont_add, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.cancel();
+                                        }
+                                    })
+                                    .show();
+                        } else {
+                            new AlertDialog.Builder(getContext())
+                                    .setTitle(R.string.title_nzp_error)
+                                    .setMessage(retrievedPackage.getDetailedStatus())
+                                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    })
+                                    .show();
+                        }
+                    } else {
+                        db.insertPackage(retrievedPackage);
+                    }
+                }
+            }
+        }
+    }
 }

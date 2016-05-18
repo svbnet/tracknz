@@ -30,10 +30,6 @@ public class TrackingDB implements Closeable {
         dbHelper = new TrackingDBHelper(context);
     }
 
-    TrackingDB(SQLiteDatabase db) {
-        this.db = db;
-    }
-
     /**
      * Opens a connection to the database
      */
@@ -52,6 +48,9 @@ public class TrackingDB implements Closeable {
         }
     }
 
+    /**
+     * Opens DB if local db instance is null. Must be called before every query.
+     */
     private void openIfNotOpened() {
         if (db == null) open();
     }
@@ -71,7 +70,7 @@ public class TrackingDB implements Closeable {
     }
 
     /**
-     * Inserts package events into the database, removing any existing first.
+     * Inserts package events into the database.
      * @param packageCode The package code of the events.
      * @param events The events to insert.
      */
@@ -102,6 +101,11 @@ public class TrackingDB implements Closeable {
         return values;
     }
 
+    /**
+     * Creates a ContentValues appropriate for insertion into the database.
+     * @param event The event to create content values for
+     * @return A ContentValues object representing the event
+     */
     private ContentValues createValuesForEvent(NZPostTrackingEvent event) {
         ContentValues values = new ContentValues();
         values.put("package", event.getParentPackage());
@@ -111,6 +115,11 @@ public class TrackingDB implements Closeable {
         return values;
     }
 
+    /**
+     * Creates a package from an ordered cursor when selecting all columns.
+     * @param cur Cursor returned from query.
+     * @return A package set from cursor values.
+     */
     private NZPostTrackedPackage packageFromOrderedCursor(Cursor cur) {
         NZPostTrackedPackage trackedPackage = new NZPostTrackedPackage();
         trackedPackage.setTrackingCode(cur.getString(0));
@@ -122,6 +131,11 @@ public class TrackingDB implements Closeable {
         return trackedPackage;
     }
 
+    /**
+     * Creates an event from an ordered cursor when selecting all columns.
+     * @param cur Cursor returned from query.
+     * @return An event set from cursor values.
+     */
     private NZPostTrackingEvent eventFromOrderedCursor(Cursor cur) {
         NZPostTrackingEvent NZPostTrackingEvent = new NZPostTrackingEvent();
         NZPostTrackingEvent.setParentPackage(cur.getString(0));
@@ -162,9 +176,9 @@ public class TrackingDB implements Closeable {
 
     /**
      * Retrieves all packages from the DB, along with their events.
-     * @return An {@link ArrayList} of {@link NZPostTrackedPackage}.
+     * @return An {@link List} of {@link NZPostTrackedPackage}.
      */
-    public ArrayList<NZPostTrackedPackage> findAllPackages() {
+    public List<NZPostTrackedPackage> findAllPackages() {
         openIfNotOpened();
         ArrayList<NZPostTrackedPackage> trackedPackages = new ArrayList<>();
         Cursor cur = db.query(
@@ -188,6 +202,10 @@ public class TrackingDB implements Closeable {
         return trackedPackages;
     }
 
+    /**
+     * Retrieves only the codes of each package in the database.
+     * @return A string list of package codes.
+     */
     public List<String> findAllPackageCodes() {
         openIfNotOpened();
         List<String> codes = new ArrayList<>();
@@ -216,7 +234,7 @@ public class TrackingDB implements Closeable {
      * @param packageCode The package code
      * @return An {@link ArrayList} of {@link NZPostTrackedPackage}.
      */
-    public ArrayList<NZPostTrackingEvent> findEventsForPackage(String packageCode) {
+    public List<NZPostTrackingEvent> findEventsForPackage(String packageCode) {
         openIfNotOpened();
         ArrayList<NZPostTrackingEvent> events = new ArrayList<>();
         Cursor cur = db.query(
@@ -241,6 +259,11 @@ public class TrackingDB implements Closeable {
         return events;
     }
 
+    /**
+     * Returns the latest chronological event for a package.
+     * @param packageCode The code to find.
+     * @return An event, or null if none are found.
+     */
     public NZPostTrackingEvent findLatestEventForPackage(String packageCode) {
         openIfNotOpened();
         Cursor cur = db.query(
@@ -272,6 +295,11 @@ public class TrackingDB implements Closeable {
         db.update(TrackingDBHelper.TBL_TRACKED_PACKAGES, values, "code = ?", new String[]{packageCode});
     }
 
+    /**
+     * Retrieves a package's label by code.
+     * @param code The package's code.
+     * @return The package's label, or null if it doesn't exist.
+     */
     public String getLabel(String code) {
         Cursor cur = db.query(TrackingDBHelper.TBL_TRACKED_PACKAGES,
                 new String[] {"label"}, "code = ?", new String[]{code}, null, null, null);
@@ -285,6 +313,10 @@ public class TrackingDB implements Closeable {
         }
     }
 
+    /**
+     * Updates a stored package by code, sets has_pending_events to true and inserts any new events.
+     * @param trackedPackage The package to update, with new values and events.
+     */
     public void updatePackage(NZPostTrackedPackage trackedPackage) {
         openIfNotOpened();
         ContentValues values = new ContentValues();
@@ -307,6 +339,10 @@ public class TrackingDB implements Closeable {
         db.update(TrackingDBHelper.TBL_TRACKED_PACKAGES, values, "code = ?", new String[]{code});
     }
 
+    /**
+     * Gets every package code who's latest event is {@link PackageFlag#FLAG_DELIVERY_COMPLETE}.
+     * @return a string list of package codes.
+     */
     public List<String> getDeliveredPackageCodes() {
         openIfNotOpened();
         // Select all distinct events which have a flag of delivery complete
@@ -342,6 +378,9 @@ public class TrackingDB implements Closeable {
         Log.d(TAG, "deletePackage: delete events for " + packageCode);
     }
 
+    /**
+     * Drops the entire database then recreates it.
+     */
     public void reset() {
         openIfNotOpened();
         dbHelper.recreate(db);

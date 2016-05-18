@@ -8,13 +8,26 @@ import java.net.URLConnection;
 
 import co.svbnet.tracknz.BuildConfig;
 
+/**
+ * Provides convenience methods for requesting HTTP data.
+ */
 public class HttpUtil {
 
     /**
      * The HTTP user agent header value to send when making an API request.
      */
     public static final String USER_AGENT = "TrackNZ/" + BuildConfig.VERSION_NAME;
+    /**
+     * The amount of time the HTTP client will wait for a connection.
+     */
     public static final int TIMEOUT = 10000;
+
+    /**
+     * Downloads the string response of a URL GET request.
+     * @param url The URL to request with.
+     * @return The contents of the URL
+     * @throws IOException
+     */
     public static String downloadString(URL url) throws IOException {
         URLConnection connection = url.openConnection();
         connection.setRequestProperty("User-Agent", USER_AGENT);

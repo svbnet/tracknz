@@ -23,13 +23,21 @@ import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.CodeValidationUtil;
 
+/**
+ * The main activity of the application: This is the launcher activity, and hosts the package info
+ * and package list fragments.
+ */
+public class MainActivity extends ToolbarActivity
+        implements PackageListFragment.OnPackageListInteraction,
+        PackageInfoFragment.InfoFragmentCallbacks {
 
-public class MainActivity extends ToolbarActivity implements PackageListFragment.OnPackageListInteraction {
-    // Constants - Log tag
     private static final String TAG = "MainActivity";
+    private static final int REQUEST_TRACKING_CODES = 1;
 
-    public static final int REQUEST_TRACKING_CODES = 1;
-    public static final int REQUEST_BARCODE = 2;
+    /**
+     * Extras bundle key for the package to be displayed in the info fragment.
+     */
+    public static final String CURRENT_PACKAGE = "current_package";
 
     @Nullable @Bind(R.id.info_fragment_container) FrameLayout infoFragmentContainer;
     @Bind(R.id.fragment_container) FrameLayout mFragmentContainer;
@@ -59,6 +67,7 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
                 .beginTransaction()
                 .replace(R.id.fragment_container, mListFragment)
                 .commit();
+        selectedPackage = getIntent().getParcelableExtra(CURRENT_PACKAGE);
 
         // Tablet in portrait mode and with a selected package
         // fragmentContainer is left-hand container on MDV, main container in single view
@@ -69,7 +78,7 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        selectedPackage = savedInstanceState.getParcelable("currentPackage");
+        selectedPackage = savedInstanceState.getParcelable(CURRENT_PACKAGE);
         if (selectedPackage != null) {
             showPackageInInfoFragment(selectedPackage);
         }
@@ -78,7 +87,7 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
     @Override
     protected void onSaveInstanceState(Bundle outState) {
 
-        outState.putParcelable("currentPackage", selectedPackage);
+        outState.putParcelable(CURRENT_PACKAGE, selectedPackage);
         super.onSaveInstanceState(outState);
     }
 
@@ -224,8 +233,15 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_TRACKING_CODES) {
+            if (resultCode == RESULT_OK) {
+                selectedPackage = data.getParcelableExtra(CURRENT_PACKAGE);
+                showPackageInInfoFragment(selectedPackage);
+            }
+            return;
+        }
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (scanResult != null) {
+        if (scanResult == null) {
             return;
         }
         String code = scanResult.getContents();
@@ -252,134 +268,13 @@ public class MainActivity extends ToolbarActivity implements PackageListFragment
             intent.putExtra(CodeInputActivity.CODE, code);
             startActivityForResult(intent, REQUEST_TRACKING_CODES);
         }
-
     }
 
-//    private class PackagesMultiChoiceListener implements AbsListView.MultiChoiceModeListener {
-//
-//        private List<Integer> getIndicesOfCheckedItems(SparseBooleanArray items) {
-//            List<Integer> indices = new ArrayList<>();
-//            for (int i = 0; i < items.size(); i++) {
-//                if (items.valueAt(i)) {
-//                    indices.add(items.keyAt(i));
-//                }
-//            }
-//            return indices;
-//        }
-//
-//        @Override
-//        public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
-//            int checkedItems = listView.getCheckedItemCount();
-//            // If no items are selected, don't update to avoid awkward fade-out transition
-//            if (checkedItems >= 1) {
-//                mode.setTitle(getString(R.string.actionmode_selected, checkedItems));
-//                // Apply visibility settings to singular menu items
-//            }
-//        }
-//
-//        @Override
-//        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-//            mode.getMenuInflater().inflate(R.menu.menu_packages_contextual, menu);
-//            // Hide FAB when in CAB mode
-//            addFloatingButton.setVisibility(View.GONE);
-//            // Stop refreshing
-//            if (refreshTask != null) {
-//                refreshTask.cancel(true);
-//                swipeRefreshLayout.setRefreshing(false);
-//
-//            }
-//            return true;
-//        }
-//
-//        @Override
-//        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-//            return false;
-//        }
-//
-//        @Override
-//        public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
-//            switch (item.getItemId()) {
-//                case R.id.action_set_label:
-//                    // "There can only be one" - Gwen Stefani, from Hollaback Girl
-//                    int itemId = getIndicesOfCheckedItems(listView.getCheckedItemPositions()).get(0);
-//                    final NZPostTrackedPackage trackedPackage = adapterItems.get(itemId);
-//                    PackageModifyUtil.editLabel(MainActivity.this, db, trackedPackage, new PackageModifyUtil.LabelEditComplete() {
-//                        @Override
-//                        public void onLabelEditComplete(String newLabel) {
-//                            mode.finish();
-//                            updateItems();
-//                        }
-//                    });
-//                    break;
-//
-//                case R.id.action_share:
-//                    List<Integer> shareIds = getIndicesOfCheckedItems(listView.getCheckedItemPositions());
-//                    String codes = "";
-//                    for (Integer id : shareIds) {
-//                            codes += adapterItems.get(id).getTrackingCode() + "\n";
-//                    }
-//                    ShareUtil.shareCode(MainActivity.this, codes);
-//                    break;
-//
-//                case R.id.action_delete:
-//                    final List<Integer> delItemIds = getIndicesOfCheckedItems(listView.getCheckedItemPositions());
-//                    final List<NZPostTrackedPackage> packagesToDelete = new ArrayList<>();
-//                    StringBuilder sb = new StringBuilder();
-//                    for (Integer id : delItemIds) {
-//                        NZPostTrackedPackage selectedItem = adapterItems.get(id);
-//                        packagesToDelete.add(selectedItem);
-//                        sb.append("<b>");
-//                        if (selectedItem.getLabel() == null) {
-//                            sb.append(selectedItem.getTrackingCode());
-//                            sb.append("</b>");
-//                        } else {
-//                            sb.append(selectedItem.getLabel());
-//                            sb.append("</b>");
-//                            sb.append(" (");
-//                            sb.append(selectedItem.getTrackingCode());
-//                            sb.append(")");
-//                        }
-//                        sb.append("<br>");
-//                    }
-//                    sb.append("<br>");
-//                    int itemsSize = delItemIds.size();
-//                    String msg;
-//                    if (itemsSize == 1) {
-//                        msg = MainActivity.this.getString(R.string.message_delete_package, sb.toString()).replace("<br>", "");
-//                    } else {
-//                        msg = MainActivity.this.getString(R.string.message_delete_packages, sb.toString());
-//                    }
-//                    new AlertDialog.Builder(MainActivity.this)
-//                            .setTitle(R.string.title_delete_packages)
-//                            .setMessage(Html.fromHtml(msg))
-//                            .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
-//                                @Override
-//                                public void onClick(DialogInterface dialog, int which) {
-//                                    for (NZPostTrackedPackage id : packagesToDelete) {
-//                                            db.deletePackage(id.getTrackingCode());
-//                                    }
-//                                    updateItems();
-//                                    dialog.dismiss();
-//                                    mode.finish();
-//                                }
-//                            })
-//                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-//                                @Override
-//                                public void onClick(DialogInterface dialog, int which) {
-//                                    dialog.dismiss();
-//                                }
-//                            })
-//                            .show();
-//                    break;
-//            }
-//            return true;
-//        }
-//
-//        @Override
-//        public void onDestroyActionMode(ActionMode mode) {
-//            addFloatingButton.setVisibility(View.VISIBLE);
-//        }
-//    }
-
+    @Override
+    public void onRemove(String packageCode) {
+        selectedPackage = null;
+        mListFragment.removeItemFromList(packageCode);
+        goBack();
+    }
 
 }

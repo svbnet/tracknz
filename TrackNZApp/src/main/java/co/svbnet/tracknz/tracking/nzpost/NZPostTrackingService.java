@@ -21,7 +21,7 @@ import co.svbnet.tracknz.tracking.HttpUtil;
 public class NZPostTrackingService {
 
     private static final String NZP_TRACKING_API_KEY = "8ad4cbf0-47cb-0130-b979-005056920ffa";
-    private static final String ENDPOINT = BuildConfig.DEBUG ? "http://mercury/mock_service.php" : "https://api.nzpost.co.nz/tracking/track";
+    private static final String ENDPOINT = BuildConfig.DEBUG ? "http://mercury:5000/track" : "https://api.nzpost.co.nz/tracking/track";
     private static final String NZP_URL_FORMAT = "https://www.nzpost.co.nz/tools/tracking/item/%s";
     private static final String CP_URL_FORMAT = "https://trackandtrace.courierpost.co.nz/search/%s";
 
@@ -41,7 +41,7 @@ public class NZPostTrackingService {
         // Build and send request
         URL trackingUrl = createUrl(codes);
         String jsonString = HttpUtil.downloadString(trackingUrl);
-
+        // Parse result
         Gson gson = new GsonBuilder().create();
         HashMap<String, NZPostTrackedPackage> packages = gson.fromJson(jsonString, new TypeToken<HashMap<String, NZPostTrackedPackage>>(){}.getType());
 
@@ -53,6 +53,11 @@ public class NZPostTrackingService {
             packageList.add(newPackage);
         }
         return packageList;
+    }
+
+    public List<String> _retrieveDebugCodes() throws IOException {
+        String packageCodesJson = HttpUtil.downloadString(new URL("http://mercury:5000/codes"));
+        return new Gson().fromJson(packageCodesJson, ArrayList.class);
     }
 
     public static String getNZPostUrl(String code) {

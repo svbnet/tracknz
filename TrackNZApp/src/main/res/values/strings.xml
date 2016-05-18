@@ -40,6 +40,9 @@
     <string name="message_zxing_not_installed">To scan packages, the app Barcode Scanner must be installed.</string>
     <string name="message_zxing_error">An error occurred while acquiring barcode.</string>
     <string name="message_add_nonexistent_package">The package <b>%s</b> does not currently exist in the NZ Post tracking system. Would you like to add it anyway?</string>
+    <string name="message_delete_packages">%s<br /><br />Are you sure you want to delete these packages?</string>
+    <string name="message_delete_package">Are you sure you want to delete package %s?</string>
+    <string name="message_delete_package_with_label">Are you sure you want to delete package <b>%s</b> (%s)?</string>
 
     <!-- Dialog button labels -->
     <string name="dialog_button_delete">Delete</string>
@@ -71,6 +74,7 @@
     <string name="preference_sound">Sound</string>
 
     <!-- Misc. strings -->
+    <string name="actionmode_selected">%d selected</string>
     <string name="help_tracking_codes">
         Your tracking code begins with at two letters (e.g. RF), has 9 numbers in between (e.g. 123456789) and ends with two letters (e.g. NZ).
         If you\'re adding a CourierPost tracking code, you may have a code different to this format.

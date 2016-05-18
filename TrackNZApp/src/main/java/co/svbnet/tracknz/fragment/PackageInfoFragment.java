@@ -3,10 +3,12 @@ package co.svbnet.tracknz.fragment;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,9 +38,13 @@ public class PackageInfoFragment extends Fragment {
 
     private static final String ARG_PACKAGE = "package";
 
+    /* Private fields */
     private NZPostTrackedPackage mPackage;
-    private TrackingDB db;
+    private TrackingDB mDb;
+    private PackageEventsArrayAdapter mEventsArrayAdapter;
+    private InfoFragmentCallbacks mListener;
 
+    /* Bound views */
     @Bind(R.id.detailed_description) TextView detailedDescription;
     @Bind(R.id.label) TextView labelLabel;
     @Bind(R.id.status_icon) ImageView statusIcon;
@@ -47,10 +53,16 @@ public class PackageInfoFragment extends Fragment {
     @Bind(R.id.empty_events) LinearLayout emptyEventsLayout;
     @Bind(R.id.source) TextView sourceText;
 
-    private PackageEventsArrayAdapter mEventsArrayAdapter;
-
+    /* Fragment methods */
     public PackageInfoFragment() {
         // Required empty public constructor
+    }
+
+    /**
+     * Provides fragment callbacks. Must be implemented by activity.
+     */
+    public interface InfoFragmentCallbacks {
+        void onRemove(String packageCode);
     }
 
     public static PackageInfoFragment newInstance(NZPostTrackedPackage trackedPackage) {
@@ -62,20 +74,32 @@ public class PackageInfoFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof InfoFragmentCallbacks) {
+            mListener = (InfoFragmentCallbacks) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement InfoFragmentCallbacks");
+        }
+        mDb = new TrackingDB(context);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         if (getArguments() != null) {
             mPackage = getArguments().getParcelable(ARG_PACKAGE);
             if (mPackage.hasPendingEvents()) {
-                db.clearPendingEvents(mPackage.getTrackingCode());
+                mDb.clearPendingEvents(mPackage.getTrackingCode());
             }
         }
     }
 
     @Override
     public void onDestroy() {
-        db.close();
+        mDb.close();
         super.onDestroy();
     }
 
@@ -96,7 +120,6 @@ public class PackageInfoFragment extends Fragment {
         super.onDestroyView();
         ButterKnife.unbind(this);
     }
-
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -121,7 +144,7 @@ public class PackageInfoFragment extends Fragment {
                 break;
 
             case R.id.action_set_label:
-                PackageModifyUtil.editLabel(getContext(), db, mPackage, new PackageModifyUtil.LabelEditComplete() {
+                PackageModifyUtil.editLabel(getContext(), mDb, mPackage, new PackageModifyUtil.LabelEditComplete() {
                     @Override
                     public void onLabelEditComplete(String newLabel) {
                         if (newLabel != null) {
@@ -134,30 +157,30 @@ public class PackageInfoFragment extends Fragment {
                 });
                 break;
 
-//            case R.id.action_delete:
-//                new AlertDialog.Builder(getContext())
-//                        .setTitle(R.string.title_delete_packages)
-//                        .setMessage(
-//                                trackedPackage.getLabel() == null ?
-//                                        getString(R.string.message_delete_package, trackedPackage.getTrackingCode()) :
-//                                        getString(R.string.message_delete_package_with_label, trackedPackage.getLabel(), trackedPackage.getTrackingCode())
-//                        )
-//                        .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                dialog.dismiss();
-//                                db.deletePackage(trackedPackage.getTrackingCode());
-//                                finish();
-//                            }
-//                        })
-//                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                dialog.dismiss();
-//                            }
-//                        })
-//                        .show();
-//                break;
+            case R.id.action_delete:
+                new AlertDialog.Builder(getContext())
+                        .setTitle(R.string.title_delete_packages)
+                        .setMessage(
+                                mPackage.getLabel() == null ?
+                                        getContext().getString(R.string.message_delete_package, mPackage.getTrackingCode()) :
+                                        getContext().getString(R.string.message_delete_package_with_label, mPackage.getLabel(), mPackage.getTrackingCode())
+                        )
+                        .setPositiveButton(R.string.dialog_button_delete, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                mDb.deletePackage(mPackage.getTrackingCode());
+                                mListener.onRemove(mPackage.getTrackingCode());
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+                break;
 
             case R.id.action_copy_code:
                 ClipboardManager clipboard = (ClipboardManager)getContext().getSystemService(Context.CLIPBOARD_SERVICE);
@@ -222,10 +245,6 @@ public class PackageInfoFragment extends Fragment {
 
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        db = new TrackingDB(context);
-    }
+
 
 }

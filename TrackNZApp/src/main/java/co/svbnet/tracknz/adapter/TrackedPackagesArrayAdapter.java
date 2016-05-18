@@ -17,6 +17,9 @@ import co.svbnet.tracknz.tracking.PackageFlag;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
 
+/**
+ * ArrayAdapter for tracked packages.
+ */
 public class TrackedPackagesArrayAdapter extends ArrayAdapter<NZPostTrackedPackage> {
 
     private final Context context;

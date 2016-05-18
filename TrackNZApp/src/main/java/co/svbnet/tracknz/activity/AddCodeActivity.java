@@ -31,6 +31,7 @@ import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.CodeValidationUtil;
 
+@Deprecated
 public class AddCodeActivity extends ToolbarActivity {
 
     private LinearLayout packageEntryLayout;

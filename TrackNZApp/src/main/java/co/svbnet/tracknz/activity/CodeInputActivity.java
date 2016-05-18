@@ -163,8 +163,8 @@ public class CodeInputActivity extends ToolbarActivity {
             // Only one package being retrieved
             final NZPostTrackedPackage retrievedPackage = retrievedPackages.get(0);
             // Create intent for Package info activity
-            final Intent intent = new Intent(CodeInputActivity.this, PackageInfoActivity.class);
-            intent.putExtra(PackageInfoActivity.PACKAGE_PARCEL, retrievedPackage);
+            final Intent intent = new Intent();
+            intent.putExtra(MainActivity.CURRENT_PACKAGE, retrievedPackage);
             String label = labelText.getText().toString();
             if (!label.isEmpty()) retrievedPackage.setLabel(label);
             if (retrievedPackage.getErrorCode() != null) {
@@ -203,7 +203,7 @@ public class CodeInputActivity extends ToolbarActivity {
                 }
             } else {
                 db.insertPackage(retrievedPackage);
-                startActivity(intent);
+                setResult(RESULT_OK, intent);
                 finish();
             }
         }
