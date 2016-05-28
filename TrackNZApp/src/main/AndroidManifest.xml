@@ -9,6 +9,7 @@
 
     <!-- Application -->
     <application
+        android:supportsRtl="false"
         android:name=".TrackNZApplication"
         android:allowBackup="true"
         android:fullBackupContent="true"

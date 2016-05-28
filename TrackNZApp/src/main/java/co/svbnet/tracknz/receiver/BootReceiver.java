@@ -12,6 +12,7 @@ import co.svbnet.tracknz.BackgroundRefreshManager;
 public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
+
         new BackgroundRefreshManager(context).setFromPreferences(null);
     }
 }

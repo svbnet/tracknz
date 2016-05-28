@@ -13,14 +13,12 @@
             android:foreground="@drawable/bottom_shadow"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/fragment_container"
-            android:layout_below="@+id/toolbar_include" />
+            android:id="@+id/fragment_container" />
 
         <FrameLayout
             android:visibility="gone"
             android:foreground="@drawable/bottom_shadow"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/info_fragment_container"
-            android:layout_below="@+id/toolbar_include" />
+            android:id="@+id/info_fragment_container" />
 </LinearLayout>
