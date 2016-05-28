@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp">
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/code"
                 tools:text="RF123456789NZ"
                 android:maxLines="1"
@@ -39,7 +39,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp">
-            <EditText
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/label"
                 tools:text="New shoes"
                 android:maxLines="1"

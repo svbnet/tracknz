@@ -13,6 +13,7 @@ import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
@@ -60,6 +61,12 @@ public class CodeInputActivity extends ToolbarActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        validate(codeText.getText().toString());
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.menu_add_code, menu);
@@ -95,6 +102,14 @@ public class CodeInputActivity extends ToolbarActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 validate(s.toString());
+            }
+        });
+        codeText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    validate(((EditText)v).getText().toString());
+                }
             }
         });
         labelText = (EditText)findViewById(R.id.label);
