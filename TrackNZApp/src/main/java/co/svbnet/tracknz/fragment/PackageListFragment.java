@@ -67,6 +67,8 @@ public class PackageListFragment extends Fragment {
 
     public interface OnPackageListInteraction {
         void onItemClicked(NZPostTrackedPackage trackedPackage);
+        void onSelectedItemChanged();
+        void onSelectedItemDeleted();
         void requestManualEntry(@Nullable String code);
         void requestBarcode();
     }
@@ -122,12 +124,16 @@ public class PackageListFragment extends Fragment {
         // create packages list view adapter
         mAdapter = new TrackedPackagesArrayAdapter(getContext(), mAdapterItems);
         listView.setAdapter(mAdapter);
-        //listView.setMultiChoiceModeListener(new PackagesMultiChoiceListener());
+        listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
+        listView.setMultiChoiceModeListener(new PackagesMultiChoiceListener());
 
         // update set view items
         mAdapterItems.addAll(mDb.findAllPackages());
         mAdapter.notifyDataSetChanged();
         updateWidgetStates(view);
+
+        // check if we can show the paste button
+        checkIfCodeIsOnClipboard();
         return view;
     }
 
@@ -183,7 +189,7 @@ public class PackageListFragment extends Fragment {
     }
 
     private View lastSelected = null;
-    private String lastSelectedCode;
+    private NZPostTrackedPackage mSelectedPackage;
 
     @OnItemClick(R.id.packages)
     public void onPackagesListViewItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -195,9 +201,8 @@ public class PackageListFragment extends Fragment {
             view.setBackgroundResource(R.color.selection);
             lastSelected = view;
         }
-        NZPostTrackedPackage selectedPackage = mAdapterItems.get(position);
-        lastSelectedCode = selectedPackage.getTrackingCode();
-        mListener.onItemClicked(selectedPackage);
+        mSelectedPackage = mAdapterItems.get(position);
+        mListener.onItemClicked(mSelectedPackage);
     }
 
 
@@ -270,18 +275,24 @@ public class PackageListFragment extends Fragment {
         mAdapter.notifyDataSetChanged();
     }
 
-    public void removeItemFromList(String code) {
-        int itemIndex = -1;
-        for (int i = 0; i < mAdapterItems.size(); i++) {
-            if (mAdapterItems.get(i).getTrackingCode().equals(code)) {
-                itemIndex = i;
-                break;
-            }
-        }
-        if (itemIndex > -1) {
-            mAdapterItems.remove(itemIndex);
-        }
+    public List<NZPostTrackedPackage> getItems() {
+        return mAdapterItems;
+    }
+
+    public void invalidateItems() {
         updateItems();
+    }
+
+    public void selectItem(int index) {
+        View view = mAdapter.getView(index, null, listView);
+        if (!getContext().getResources().getBoolean(R.bool.is_tablet) ||
+                !getContext().getResources().getBoolean(R.bool.is_landscape)) {
+            if (lastSelected != null) {
+                lastSelected.setBackgroundResource(android.R.color.transparent);
+            }
+            view.setBackgroundResource(R.color.selection);
+            lastSelected = view;
+        }
     }
 
     private class MainPackageRefreshTask extends PackageUpdateTask {
@@ -337,7 +348,7 @@ public class PackageListFragment extends Fragment {
                         mAdapterItems.set(mAdapterItems.indexOf(item), uitem);
                         if (context.getResources().getBoolean(R.bool.is_tablet) &&
                                 context.getResources().getBoolean(R.bool.is_landscape)) {
-                            if (item.getTrackingCode().equals(lastSelectedCode)) {
+                            if (item.getTrackingCode().equals(mSelectedPackage.getTrackingCode())) {
                                 mListener.onItemClicked(uitem);
                             }
                         }
@@ -471,7 +482,11 @@ public class PackageListFragment extends Fragment {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     for (NZPostTrackedPackage id : packagesToDelete) {
-                                            mDb.deletePackage(id.getTrackingCode());
+                                        mDb.deletePackage(id.getTrackingCode());
+                                        mAdapterItems.remove(id);
+                                        if (id.equals(mSelectedPackage)) {
+                                            mListener.onSelectedItemDeleted();
+                                        }
                                     }
                                     updateItems();
                                     dialog.dismiss();

@@ -62,7 +62,8 @@ public class PackageInfoFragment extends Fragment {
      * Provides fragment callbacks. Must be implemented by activity.
      */
     public interface InfoFragmentCallbacks {
-        void onRemove(String packageCode);
+        void onChange(NZPostTrackedPackage trackedPackage);
+        void onRemove(NZPostTrackedPackage trackedPackage);
     }
 
     public static PackageInfoFragment newInstance(NZPostTrackedPackage trackedPackage) {
@@ -153,6 +154,7 @@ public class PackageInfoFragment extends Fragment {
                         } else {
                             labelLabel.setVisibility(View.GONE);
                         }
+                        mListener.onChange(mPackage);
                     }
                 });
                 break;
@@ -170,7 +172,7 @@ public class PackageInfoFragment extends Fragment {
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
                                 mDb.deletePackage(mPackage.getTrackingCode());
-                                mListener.onRemove(mPackage.getTrackingCode());
+                                mListener.onRemove(mPackage);
                             }
                         })
                         .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {

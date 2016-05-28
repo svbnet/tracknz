@@ -38,6 +38,7 @@ public class MainActivity extends ToolbarActivity
      * Extras bundle key for the package to be displayed in the info fragment.
      */
     public static final String CURRENT_PACKAGE = "current_package";
+    private static final String CURRENT_PACKAGE_SAVED_INSTANCE = "current_package_saved_instance";
 
     @Nullable @Bind(R.id.info_fragment_container) FrameLayout infoFragmentContainer;
     @Bind(R.id.fragment_container) FrameLayout mFragmentContainer;
@@ -78,7 +79,7 @@ public class MainActivity extends ToolbarActivity
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        selectedPackage = savedInstanceState.getParcelable(CURRENT_PACKAGE);
+        selectedPackage = savedInstanceState.getParcelable(CURRENT_PACKAGE_SAVED_INSTANCE);
         if (selectedPackage != null) {
             showPackageInInfoFragment(selectedPackage);
         }
@@ -86,8 +87,7 @@ public class MainActivity extends ToolbarActivity
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-
-        outState.putParcelable(CURRENT_PACKAGE, selectedPackage);
+        outState.putParcelable(CURRENT_PACKAGE_SAVED_INSTANCE, selectedPackage);
         super.onSaveInstanceState(outState);
     }
 
@@ -154,6 +154,21 @@ public class MainActivity extends ToolbarActivity
 //        }
     }
 
+    @Override
+    public void onSelectedItemChanged() {
+
+    }
+
+    @Override
+    public void onSelectedItemDeleted() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .remove(mInfoFragment)
+                .commitAllowingStateLoss();
+        mInfoFragment = null;
+        selectedPackage = null;
+    }
+
     private void showPackageInInfoFragment(NZPostTrackedPackage trackedPackage) {
         mInfoFragment = PackageInfoFragment.newInstance(trackedPackage);
         applyContainerVisibility();
@@ -162,7 +177,8 @@ public class MainActivity extends ToolbarActivity
                 .beginTransaction()
                 .setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_fast)
                 .replace(R.id.info_fragment_container, mInfoFragment)
-                .commit();
+                // Fix for java.lang.IllegalStateException: Can not perform this action after onSaveInstanceState bug on support library
+                .commitAllowingStateLoss();
     }
 
     private void applyActionBar() {
@@ -235,7 +251,11 @@ public class MainActivity extends ToolbarActivity
         if (requestCode == REQUEST_TRACKING_CODES) {
             if (resultCode == RESULT_OK) {
                 selectedPackage = data.getParcelableExtra(CURRENT_PACKAGE);
+                mListFragment.getItems().add(selectedPackage);
+                mListFragment.invalidateItems();
                 showPackageInInfoFragment(selectedPackage);
+                int packageIndex = mListFragment.getItems().indexOf(selectedPackage);
+                mListFragment.selectItem(packageIndex);
             }
             return;
         }
@@ -270,9 +290,18 @@ public class MainActivity extends ToolbarActivity
     }
 
     @Override
-    public void onRemove(String packageCode) {
+    public void onChange(NZPostTrackedPackage trackedPackage) {
+//        List<NZPostTrackedPackage> trackedPackageList = mListFragment.getItems();
+//        int idx = trackedPackageList.indexOf(trackedPackage);
+//        trackedPackageList.set(idx, trackedPackage);
+        mListFragment.invalidateItems();
+    }
+
+    @Override
+    public void onRemove(NZPostTrackedPackage trackedPackage) {
+        mListFragment.getItems().remove(trackedPackage);
+        mListFragment.invalidateItems();
         selectedPackage = null;
-        mListFragment.removeItemFromList(packageCode);
         goBack();
     }
 

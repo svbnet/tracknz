@@ -10,11 +10,14 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.net.ConnectException;
 import java.util.List;
@@ -65,6 +68,15 @@ public class CodeInputActivity extends ToolbarActivity {
         return true;
     }
 
+    private void validate(String s) {
+        if (!CodeValidationUtil.isValidCode(s)) {
+            codeText.setError(getString(R.string.error_code_invalid));
+            if (trackItem != null) trackItem.setEnabled(false);
+        } else {
+            if (trackItem != null) trackItem.setEnabled(true);
+        }
+    }
+
     private void setupUi() {
         codeText = (EditText)findViewById(R.id.code);
         codeText.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
@@ -82,15 +94,20 @@ public class CodeInputActivity extends ToolbarActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (!CodeValidationUtil.isValidCode(s.toString())) {
-                    codeText.setError(getString(R.string.error_code_invalid));
-                    if (trackItem != null) trackItem.setEnabled(false);
-                } else {
-                    if (trackItem != null) trackItem.setEnabled(true);
-                }
+                validate(s.toString());
             }
         });
         labelText = (EditText)findViewById(R.id.label);
+        labelText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (trackItem != null && trackItem.isEnabled() && actionId == EditorInfo.IME_ACTION_DONE) {
+                    submitPackage();
+                    return true;
+                }
+                return false;
+            }
+        });
         notificationsCheck = (CheckBox)findViewById(R.id.package_notifications);
         if (code != null) {
             // If we are supplied with a code, insert it into the code edittext and focus on the label
@@ -98,13 +115,18 @@ public class CodeInputActivity extends ToolbarActivity {
             labelText.requestFocus();
             if (trackItem != null) trackItem.setEnabled(true);
         }
+        validate(codeText.getText().toString());
+    }
+
+    private void submitPackage() {
+        new AddSinglePackageTask(new NZPostTrackingService()).execute(codeText.getText().toString());
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_track:
-                new AddSinglePackageTask(new NZPostTrackingService()).execute(codeText.getText().toString());
+                submitPackage();
                 break;
 
         }
@@ -135,7 +157,8 @@ public class CodeInputActivity extends ToolbarActivity {
 
         @Override
         protected void onPostExecute(List<NZPostTrackedPackage> trackedPackages) {
-            progressDialog.hide();
+            progressDialog.dismiss();
+            progressDialog = null;
             super.onPostExecute(trackedPackages);
         }
 

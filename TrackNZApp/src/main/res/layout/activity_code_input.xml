@@ -25,12 +25,14 @@
             <EditText
                 android:id="@+id/code"
                 tools:text="RF123456789NZ"
+                android:maxLines="1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/hint_tracking_code"
                 android:maxLength="13"
                 android:textSize="32sp"
                 android:singleLine="true"
+                android:imeOptions="actionNext"
                 android:inputType="textNoSuggestions|textCapCharacters" />
         </android.support.design.widget.TextInputLayout>
         <android.support.design.widget.TextInputLayout
@@ -40,8 +42,11 @@
             <EditText
                 android:id="@+id/label"
                 tools:text="New shoes"
+                android:maxLines="1"
+                android:singleLine="true"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:imeOptions="actionDone"
                 android:hint="@string/hint_label" />
         </android.support.design.widget.TextInputLayout>
 

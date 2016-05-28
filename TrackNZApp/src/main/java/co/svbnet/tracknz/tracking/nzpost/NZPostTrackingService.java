@@ -55,10 +55,10 @@ public class NZPostTrackingService {
         return packageList;
     }
 
-    public List<String> _retrieveDebugCodes() throws IOException {
-        String packageCodesJson = HttpUtil.downloadString(new URL("http://mercury:5000/codes"));
-        return new Gson().fromJson(packageCodesJson, ArrayList.class);
-    }
+//    public List<String> _retrieveDebugCodes() throws IOException {
+//        String packageCodesJson = HttpUtil.downloadString(new URL("http://mercury:5000/codes"));
+//        return new Gson().fromJson(packageCodesJson, ArrayList.class);
+//    }
 
     public static String getNZPostUrl(String code) {
         return String.format(NZP_URL_FORMAT, code);
