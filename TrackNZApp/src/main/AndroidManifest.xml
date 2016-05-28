@@ -48,22 +48,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.AddCodeActivity"
-            android:label="@string/title_activity_add_code"
-            android:parentActivityName=".activity.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activity.MainActivity" />
-        </activity>
-        <activity
-            android:name=".activity.PackageInfoActivity"
-            android:label="@string/title_activity_package_info"
-            android:parentActivityName=".activity.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activity.MainActivity" />
-        </activity>
-        <activity
             android:name=".activity.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".activity.MainActivity">
