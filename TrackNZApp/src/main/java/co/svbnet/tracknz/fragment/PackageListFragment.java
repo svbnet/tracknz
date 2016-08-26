@@ -66,7 +66,7 @@ public class PackageListFragment extends Fragment {
     }
 
     public interface OnPackageListInteraction {
-        void onItemClicked(NZPostTrackedPackage trackedPackage);
+        void onItemSelected(NZPostTrackedPackage trackedPackage);
         void onSelectedItemChanged();
         void onSelectedItemDeleted();
         void requestManualEntry(@Nullable String code);
@@ -193,16 +193,16 @@ public class PackageListFragment extends Fragment {
 
     @OnItemClick(R.id.packages)
     public void onPackagesListViewItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (getContext().getResources().getBoolean(R.bool.is_tablet) &&
-                getContext().getResources().getBoolean(R.bool.is_landscape)) {
-            if (lastSelected != null) {
-                lastSelected.setBackgroundResource(android.R.color.transparent);
-            }
-            view.setBackgroundResource(R.color.selection);
-            lastSelected = view;
-        }
+//        if (getContext().getResources().getBoolean(R.bool.is_tablet) &&
+//                getContext().getResources().getBoolean(R.bool.is_landscape)) {
+//            if (lastSelected != null) {
+//                lastSelected.setBackgroundResource(android.R.color.transparent);
+//            }
+//            view.setBackgroundResource(R.color.selection);
+//            lastSelected = view;
+//        }
         mSelectedPackage = mAdapterItems.get(position);
-        mListener.onItemClicked(mSelectedPackage);
+        mListener.onItemSelected(mSelectedPackage);
     }
 
 
@@ -284,15 +284,20 @@ public class PackageListFragment extends Fragment {
     }
 
     public void selectItem(int index) {
-        View view = mAdapter.getView(index, null, listView);
-        if (!getContext().getResources().getBoolean(R.bool.is_tablet) ||
-                !getContext().getResources().getBoolean(R.bool.is_landscape)) {
-            if (lastSelected != null) {
-                lastSelected.setBackgroundResource(android.R.color.transparent);
-            }
-            view.setBackgroundResource(R.color.selection);
-            lastSelected = view;
-        }
+//        View view = mAdapter.getView(index, null, listView);
+//        if (!getContext().getResources().getBoolean(R.bool.is_tablet) ||
+//                !getContext().getResources().getBoolean(R.bool.is_landscape)) {
+//            if (lastSelected != null) {
+//                lastSelected.setBackgroundResource(android.R.color.transparent);
+//            }
+//            view.setBackgroundResource(R.color.selection);
+//            lastSelected = view;
+//        }
+        mSelectedPackage = mAdapterItems.get(index);
+    }
+
+    public NZPostTrackedPackage getSelectedPackage() {
+        return mSelectedPackage;
     }
 
     private class MainPackageRefreshTask extends PackageUpdateTask {
@@ -301,7 +306,7 @@ public class PackageListFragment extends Fragment {
          * Constructs a new instance of a MainPackageRefreshTask for this activity.
          */
         public MainPackageRefreshTask(NZPostTrackingService service) {
-            super(service, PackageListFragment.this.getContext(), PackageListFragment.this.mDb, null);
+            super(service, PackageListFragment.this.getContext(), PackageListFragment.this.mDb);
         }
 
         @Override
@@ -342,20 +347,31 @@ public class PackageListFragment extends Fragment {
 
         @Override
         protected void onPackagesInserted(List<NZPostTrackedPackage> updatedPackages) {
-            for (NZPostTrackedPackage item : mAdapterItems) {
-                for (NZPostTrackedPackage uitem : updatedPackages) {
-                    if (item.getTrackingCode().equals(uitem.getTrackingCode())) {
-                        mAdapterItems.set(mAdapterItems.indexOf(item), uitem);
-                        if (context.getResources().getBoolean(R.bool.is_tablet) &&
-                                context.getResources().getBoolean(R.bool.is_landscape)) {
-                            if (item.getTrackingCode().equals(mSelectedPackage.getTrackingCode())) {
-                                mListener.onItemClicked(uitem);
-                            }
-                        }
-//                        updatedPackages.remove(uitem);
-                    }
+            String selectedCode = mSelectedPackage != null ? mSelectedPackage.getTrackingCode() : null;
+            for (NZPostTrackedPackage item : updatedPackages) {
+                int adapterItemIndex = mAdapterItems.indexOf(item);
+                mAdapterItems.set(adapterItemIndex, item);
+                if (selectedCode != null && selectedCode.equals(item.getTrackingCode())) {
+                    mSelectedPackage = item;
+                    mListener.onSelectedItemChanged();
                 }
             }
+//            for (NZPostTrackedPackage item : mAdapterItems) {
+//                for (NZPostTrackedPackage uitem : updatedPackages) {
+//                    if (item.getTrackingCode().equals(uitem.getTrackingCode())) {
+//
+//                        mAdapterItems.set(mAdapterItems.indexOf(item), uitem);
+//                        if (context.getResources().getBoolean(R.bool.is_tablet) &&
+//                                context.getResources().getBoolean(R.bool.is_landscape)) {
+//                            if (item.getTrackingCode().equals(selectedCode)) {
+//                                mListener.onItemSelected(uitem);
+//                            }
+//                        }
+////                        updatedPackages.remove(uitem);
+//                    }
+//                }
+//            }
+
             updateItems();
         }
 
@@ -482,11 +498,12 @@ public class PackageListFragment extends Fragment {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     for (NZPostTrackedPackage id : packagesToDelete) {
-                                        mDb.deletePackage(id.getTrackingCode());
-                                        mAdapterItems.remove(id);
                                         if (id.equals(mSelectedPackage)) {
                                             mListener.onSelectedItemDeleted();
                                         }
+                                        mDb.deletePackage(id.getTrackingCode());
+                                        mAdapterItems.remove(id);
+
                                     }
                                     updateItems();
                                     dialog.dismiss();

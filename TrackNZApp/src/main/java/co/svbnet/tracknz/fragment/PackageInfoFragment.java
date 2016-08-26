@@ -83,17 +83,19 @@ public class PackageInfoFragment extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement InfoFragmentCallbacks");
         }
-        mDb = new TrackingDB(context);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        mDb = new TrackingDB(getContext());
         if (getArguments() != null) {
             mPackage = getArguments().getParcelable(ARG_PACKAGE);
             if (mPackage.hasPendingEvents()) {
+                mPackage.setHasPendingEvents(false);
                 mDb.clearPendingEvents(mPackage.getTrackingCode());
+                mListener.onChange(mPackage);
             }
         }
     }
@@ -247,6 +249,9 @@ public class PackageInfoFragment extends Fragment {
 
     }
 
-
+    public void update(NZPostTrackedPackage trackedPackage) {
+        this.mPackage = trackedPackage;
+        refreshUI();
+    }
 
 }

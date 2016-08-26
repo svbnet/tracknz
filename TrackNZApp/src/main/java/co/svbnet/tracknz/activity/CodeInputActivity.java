@@ -19,6 +19,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.net.ConnectException;
 import java.util.List;
@@ -30,10 +31,13 @@ import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 import co.svbnet.tracknz.util.CodeValidationUtil;
+import co.svbnet.tracknz.util.EasterEggUtil;
 
 public class CodeInputActivity extends ToolbarActivity {
 
     public static final String CODE = "code";
+
+    private static final String EASTER_EGG_TEXT = "FORTUNE666";
 
     private EditText codeText, labelText;
     private String code;
@@ -134,14 +138,32 @@ public class CodeInputActivity extends ToolbarActivity {
     }
 
     private void submitPackage() {
-        new AddSinglePackageTask(new NZPostTrackingService()).execute(codeText.getText().toString());
+        String code = codeText.getText().toString().trim();
+        if (db.doesPackageExist(code)) {
+            new AlertDialog.Builder(CodeInputActivity.this)
+                    .setTitle(R.string.title_error)
+                    .setMessage(R.string.message_code_already_exists)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+        } else {
+            new AddSinglePackageTask(new NZPostTrackingService()).execute(code);
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_track:
-                submitPackage();
+                if (codeText.getText().toString().equals(EASTER_EGG_TEXT)) {
+                    Toast.makeText(this, EasterEggUtil.newFortune(), Toast.LENGTH_LONG).show();
+                } else {
+                    submitPackage();
+                }
                 break;
 
         }
@@ -216,6 +238,7 @@ public class CodeInputActivity extends ToolbarActivity {
                                 public void onClick(DialogInterface dialog, int which) {
                                     db.insertPackage(retrievedPackage);
                                     dialog.dismiss();
+                                    setResult(RESULT_OK, intent);
                                     finish();
                                 }
                             })
@@ -235,6 +258,15 @@ public class CodeInputActivity extends ToolbarActivity {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
+                                }
+                            })
+                            .setNeutralButton(R.string.dialog_button_add_anyway, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    db.insertPackage(retrievedPackage);
+                                    dialog.dismiss();
+                                    setResult(RESULT_OK, intent);
+                                    finish();
                                 }
                             })
                             .show();

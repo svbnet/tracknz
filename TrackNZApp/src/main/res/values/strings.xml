@@ -54,6 +54,7 @@
     <string name="message_delete_packages">%s<br /><br />Are you sure you want to delete these packages?</string>
     <string name="message_delete_package">Are you sure you want to delete package %s?</string>
     <string name="message_delete_package_with_label">Are you sure you want to delete package <b>%s</b> (%s)?</string>
+    <string name="message_code_already_exists">This code is already being tracked.</string>
 
     <!-- Dialog button labels -->
     <string name="dialog_button_delete">Delete</string>
@@ -63,6 +64,7 @@
     <string name="dialog_button_dont_add">Don\'t add</string>
     <string name="dialog_button_try_again">Try again</string>
     <string name="dialog_button_sweet">Sweet!</string>
+    <string name="dialog_button_add_anyway">Add anyway</string>
 
     <!-- Button labels and icon descriptions -->
     <string name="hint_enter_a_code">Enter a code</string>
@@ -92,7 +94,7 @@
     <!-- Misc. strings -->
     <string name="actionmode_selected">%d selected</string>
     <string name="help_tracking_codes">
-        Your tracking code begins with at two letters (e.g. RF), has 9 numbers in between (e.g. 123456789) and ends with two letters (e.g. NZ).
+        Your NZ Post tracking code begins with two letters (e.g. RF), has 9 numbers in between (e.g. 123456789) and ends with two letters (e.g. NZ).\n\n
         If you\'re adding a CourierPost tracking code, you may have a code different to this format.
     </string>
 

@@ -2,6 +2,7 @@ package co.svbnet.tracknz.tracking.nzpost;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -28,6 +29,7 @@ public class NZPostTrackedPackage implements Parcelable {
     @SerializedName("detail_description")
     private String detailedDescription;
 
+    @Nullable
     @SerializedName("events")
     private List<NZPostTrackingEvent> events;
 
@@ -96,6 +98,7 @@ public class NZPostTrackedPackage implements Parcelable {
      * Gets a list of package events.
      * @return A list of package events, sorted in ascending order.
      */
+    @Nullable
     public List<NZPostTrackingEvent> getEvents() {
         if (!areEventsSorted && events != null) {
             sortEventsByDate();
@@ -190,7 +193,7 @@ public class NZPostTrackedPackage implements Parcelable {
     @Override
     public boolean equals(Object o) {
         NZPostTrackedPackage newPackage = o instanceof NZPostTrackedPackage ? (NZPostTrackedPackage) o : null;
-        return newPackage != null && newPackage.getTrackingCode().equals(code);
+        return newPackage != null && newPackage.code.equals(code);
     }
 
     public void setCode(String code) {
@@ -209,7 +212,7 @@ public class NZPostTrackedPackage implements Parcelable {
         this.detailedDescription = detailedDescription;
     }
 
-    public void setEvents(List<NZPostTrackingEvent> events) {
+    public void setEvents(@Nullable List<NZPostTrackingEvent> events) {
         this.events = events;
     }
 }

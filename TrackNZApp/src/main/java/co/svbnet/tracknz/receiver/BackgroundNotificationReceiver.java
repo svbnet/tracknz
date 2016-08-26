@@ -186,7 +186,7 @@ public class BackgroundNotificationReceiver extends BroadcastReceiver {
     private class NotificationCheckTask extends PackageUpdateTask {
 
         public NotificationCheckTask(NZPostTrackingService service, Context context) {
-            super(service, context, null, null);
+            super(service, context, null);
         }
 
         @Override

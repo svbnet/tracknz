@@ -22,7 +22,6 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
     protected NZPostTrackingService service;
     protected Context context;
     protected TrackingDB db;
-    protected List<NZPostTrackedPackage> newPackages;
 
     private Exception error;
     private List<String> codesToRetrieve = new ArrayList<>();
@@ -31,24 +30,17 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
      * Creates a new instance.
      * @param context The context to run in.
      * @param dbInstance A previously created DB instance. If null, a new instance will be created from the context supplied.
-     * @param newPackages An optional list of new packages to insert into the DB.
      */
-    public PackageUpdateTask(NZPostTrackingService service, Context context, TrackingDB dbInstance, List<NZPostTrackedPackage> newPackages) {
+    public PackageUpdateTask(NZPostTrackingService service, Context context, TrackingDB dbInstance) {
         this.service = service;
         this.context = context;
         this.db = dbInstance == null ? new TrackingDB(context) : dbInstance;
-        this.newPackages = newPackages;
     }
 
     @Override
     protected void onPreExecute() {
         db.open();
         codesToRetrieve = db.findAllPackageCodes();
-        if (newPackages != null) {
-            for (NZPostTrackedPackage trackedPackage : newPackages) {
-                codesToRetrieve.add(trackedPackage.getTrackingCode());
-            }
-        }
         if (codesToRetrieve.size() == 0) {
             Log.i(TAG, "No codes to add or update!");
             cancel(true);
@@ -86,15 +78,6 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
                 continue;
             }
 
-            // If the code returned is a new package, insert it rather than update it
-            int index;
-            if (newPackages != null && (index = newPackages.indexOf(trackedPackage)) != -1) {
-                trackedPackage.setLabel(newPackages.get(index).getLabel());
-                db.insertPackage(trackedPackage);
-                updatedPackages.add(trackedPackage);
-                continue;
-            }
-
             // To check if a package has been updated, compare the latest event
             NZPostTrackingEvent storedEvent = db.findLatestEventForPackage(trackedPackage.getTrackingCode());
             NZPostTrackingEvent recentEvent = trackedPackage.getMostRecentEvent();
@@ -105,6 +88,7 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
 
             if ((storedEvent == null && recentEvent != null) || !storedEvent.equals(recentEvent)) {
                 updatedPackages.add(trackedPackage);
+                trackedPackage.setHasPendingEvents(true);
                 db.updatePackage(trackedPackage);
             }
         }

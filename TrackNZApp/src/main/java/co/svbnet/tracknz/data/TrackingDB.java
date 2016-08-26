@@ -155,6 +155,7 @@ public class TrackingDB implements Closeable {
      * @return The package corresponding to the code (without events), or null if none is found.
      */
     public NZPostTrackedPackage findPackage(String code) {
+
         openIfNotOpened();
         Cursor cur = db.query(
                 TrackingDBHelper.TBL_TRACKED_PACKAGES,
@@ -376,6 +377,19 @@ public class TrackingDB implements Closeable {
         Log.d(TAG, "deletePackage: deleted package " + packageCode);
         db.delete(TrackingDBHelper.TBL_TRACKED_PACKAGE_EVENTS, "package = ?", new String[]{packageCode});
         Log.d(TAG, "deletePackage: delete events for " + packageCode);
+    }
+
+    public boolean doesPackageExist(String packageCode) {
+        openIfNotOpened();
+        Cursor cur = db.rawQuery("SELECT EXISTS(SELECT 1 FROM " + TrackingDBHelper.TBL_TRACKED_PACKAGES + " WHERE code = ? LIMIT 1)", new String[] { packageCode });
+        try {
+            if (!cur.moveToFirst()) {
+                return false;
+            }
+            return cur.getInt(0) == 1 ? true : false;
+        } finally {
+            cur.close();
+        }
     }
 
     /**

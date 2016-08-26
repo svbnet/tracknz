@@ -17,7 +17,7 @@ public class CodeValidationUtil {
      * @return True if the code is valid, false if it is not.
      */
     public static boolean isValidCode(String code) {
-        return !code.isEmpty() && PATTERN.matcher(code).matches();
+        return code != null && !code.isEmpty() && PATTERN.matcher(code).matches();
     }
 
 }

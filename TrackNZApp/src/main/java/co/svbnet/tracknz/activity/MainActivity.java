@@ -14,6 +14,8 @@ import android.widget.FrameLayout;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import java.util.List;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import co.svbnet.tracknz.R;
@@ -91,30 +93,6 @@ public class MainActivity extends ToolbarActivity
         super.onSaveInstanceState(outState);
     }
 
-//    private void showListInMain() {
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-//        setTitle(R.string.title_activity_main);
-//        mListFragment = PackageListFragment.newInstance();
-//        getSupportFragmentManager()
-//                .beginTransaction()
-//                .setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_fast)
-//                .replace(R.id.fragment_container, mListFragment)
-//                .commit();
-//        selectedPackage = null;
-//    }
-//
-//    private void showFullPackage() {
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        setTitle(R.string.title_activity_package_info);
-//        mInfoFragment = PackageInfoFragment.newInstance(selectedPackage);
-//        getSupportFragmentManager()
-//                .beginTransaction()
-//                .setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_fast)
-//                .replace(R.id.fragment_container, mInfoFragment)
-//                .commit();
-//        isShowingFullPackage = true;
-//    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
@@ -143,20 +121,17 @@ public class MainActivity extends ToolbarActivity
     }
 
     @Override
-    public void onItemClicked(NZPostTrackedPackage trackedPackage) {
+    public void onItemSelected(NZPostTrackedPackage trackedPackage) {
         selectedPackage = trackedPackage;
         showPackageInInfoFragment(selectedPackage);
-//        if (displayTwoPanes) {
-//            showPackageInInfoFragment(trackedPackage);
-//        } else {
-
-//            showFullPackage();
-//        }
     }
 
     @Override
     public void onSelectedItemChanged() {
-
+        if (isShowingFullPackage) {
+            selectedPackage = mListFragment.getSelectedPackage();
+            showPackageInInfoFragment(selectedPackage);
+        }
     }
 
     @Override
@@ -170,7 +145,9 @@ public class MainActivity extends ToolbarActivity
     }
 
     private void showPackageInInfoFragment(NZPostTrackedPackage trackedPackage) {
+        selectedPackage = trackedPackage;
         mInfoFragment = PackageInfoFragment.newInstance(trackedPackage);
+
         applyContainerVisibility();
         applyActionBar();
         getSupportFragmentManager()
@@ -260,7 +237,7 @@ public class MainActivity extends ToolbarActivity
             return;
         }
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (scanResult == null) {
+        if (scanResult == null || scanResult.getContents() == null) {
             return;
         }
         String code = scanResult.getContents();
@@ -291,9 +268,9 @@ public class MainActivity extends ToolbarActivity
 
     @Override
     public void onChange(NZPostTrackedPackage trackedPackage) {
-//        List<NZPostTrackedPackage> trackedPackageList = mListFragment.getItems();
-//        int idx = trackedPackageList.indexOf(trackedPackage);
-//        trackedPackageList.set(idx, trackedPackage);
+        List<NZPostTrackedPackage> trackedPackageList = mListFragment.getItems();
+        int idx = trackedPackageList.indexOf(trackedPackage);
+        trackedPackageList.set(idx, trackedPackage);
         mListFragment.invalidateItems();
     }
 
