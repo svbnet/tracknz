@@ -102,6 +102,10 @@ public class PackageListFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        // create packages list view adapter
+        mAdapter = new TrackedPackagesArrayAdapter(getContext(), mAdapterItems);
+        // update set view items
+        mAdapterItems.addAll(mDb.findAllPackages());
     }
 
     @Override
@@ -120,20 +124,14 @@ public class PackageListFragment extends Fragment {
                 mRefreshTask.execute();
             }
         });
-
-        // create packages list view adapter
-        mAdapter = new TrackedPackagesArrayAdapter(getContext(), mAdapterItems);
         listView.setAdapter(mAdapter);
         listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
         listView.setMultiChoiceModeListener(new PackagesMultiChoiceListener());
-
-        // update set view items
-        mAdapterItems.addAll(mDb.findAllPackages());
         mAdapter.notifyDataSetChanged();
-        updateWidgetStates(view);
 
         // check if we can show the paste button
         checkIfCodeIsOnClipboard();
+        updateWidgetStates(view);
         return view;
     }
 
@@ -349,8 +347,14 @@ public class PackageListFragment extends Fragment {
         protected void onPackagesInserted(List<NZPostTrackedPackage> updatedPackages) {
             String selectedCode = mSelectedPackage != null ? mSelectedPackage.getTrackingCode() : null;
             for (NZPostTrackedPackage item : updatedPackages) {
-                int adapterItemIndex = mAdapterItems.indexOf(item);
-                mAdapterItems.set(adapterItemIndex, item);
+                int idx = -1;
+                for (int i = 0; i < mAdapterItems.size(); i++) {
+                    if (mAdapterItems.get(i).getTrackingCode().equals(item.getTrackingCode())) {
+                        idx = i;
+                        break;
+                    }
+                }
+                mAdapterItems.set(idx, item);
                 if (selectedCode != null && selectedCode.equals(item.getTrackingCode())) {
                     mSelectedPackage = item;
                     mListener.onSelectedItemChanged();

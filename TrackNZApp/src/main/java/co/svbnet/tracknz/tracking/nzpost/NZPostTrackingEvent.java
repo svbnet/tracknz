@@ -116,11 +116,23 @@ public class NZPostTrackingEvent implements Parcelable {
 
     @Override
     public boolean equals(Object o) {
-        NZPostTrackingEvent event = o instanceof NZPostTrackingEvent ? (NZPostTrackingEvent) o : null;
-        return event != null
-                && event.getFlag() == getFlag()
-                && event.getDate().equals(getDate())
-                && event.parentCode.equals(parentCode);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NZPostTrackingEvent that = (NZPostTrackingEvent) o;
+
+        if (flagInt != that.flagInt) return false;
+        if (parentCode != null ? !parentCode.equals(that.parentCode) : that.parentCode != null)
+            return false;
+        return dateObj != null ? dateObj.equals(that.dateObj) : that.dateObj == null;
+
     }
 
+    @Override
+    public int hashCode() {
+        int result = parentCode != null ? parentCode.hashCode() : 0;
+        result = 31 * result + flagInt;
+        result = 31 * result + (dateObj != null ? dateObj.hashCode() : 0);
+        return result;
+    }
 }

@@ -3,6 +3,7 @@ package co.svbnet.tracknz.activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
@@ -13,6 +14,7 @@ import co.svbnet.tracknz.BuildConfig;
 import co.svbnet.tracknz.PreferenceKeys;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.data.TrackingDB;
+import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 import co.svbnet.tracknz.ui.ToolbarActivity;
 
 /**
@@ -55,6 +57,21 @@ public class SettingsActivity extends ToolbarActivity {
 //                    }
 //                });
 //                debugCategory.addPreference(debugItemsPreference);
+
+                // Endpoint
+                EditTextPreference endpointPreference = new EditTextPreference(getActivity());
+                endpointPreference.setKey("endpoint");
+                endpointPreference.setTitle("Service endpoint");
+                endpointPreference.setDefaultValue(NZPostTrackingService.getEndpoint());
+                endpointPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                    @Override
+                    public boolean onPreferenceChange(Preference preference, Object o) {
+                        NZPostTrackingService.setEndpoint((String)o);
+                        preference.setSummary((String)o);
+                        return true;
+                    }
+                });
+                debugCategory.addPreference(endpointPreference);
 
                 // Test notifications
                 Preference testNotificationPreference = new Preference(getActivity());

@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import co.svbnet.tracknz.BuildConfig;
 import co.svbnet.tracknz.tracking.HttpUtil;
 
 /**
@@ -21,12 +20,20 @@ import co.svbnet.tracknz.tracking.HttpUtil;
 public class NZPostTrackingService {
 
     private static final String NZP_TRACKING_API_KEY = "8ad4cbf0-47cb-0130-b979-005056920ffa";
-    private static final String ENDPOINT = BuildConfig.DEBUG ? "http://mercury:5000/track" : "https://api.nzpost.co.nz/tracking/track";
+    private static String endpoint = "https://api.nzpost.co.nz/tracking/track";
     private static final String NZP_URL_FORMAT = "https://www.nzpost.co.nz/tools/tracking/item/%s";
     private static final String CP_URL_FORMAT = "https://trackandtrace.courierpost.co.nz/search/%s";
 
+    public static String getEndpoint() {
+        return endpoint;
+    }
+
+    public static void setEndpoint(String endpoint) {
+        NZPostTrackingService.endpoint = endpoint;
+    }
+
     private URL createUrl(List<String> codes) throws MalformedURLException {
-        StringBuilder sb = new StringBuilder(ENDPOINT);
+        StringBuilder sb = new StringBuilder(endpoint);
         sb.append("?license_key=%s&format=json");
         for (String code : codes) {
             sb.append("&tracking_code=");

@@ -9,7 +9,6 @@ import java.util.List;
 
 import co.svbnet.tracknz.data.TrackingDB;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackedPackage;
-import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingEvent;
 import co.svbnet.tracknz.tracking.nzpost.NZPostTrackingService;
 
 /**
@@ -78,15 +77,13 @@ public abstract class PackageUpdateTask extends AsyncTask<Void, Void, List<NZPos
                 continue;
             }
 
-            // To check if a package has been updated, compare the latest event
-            NZPostTrackingEvent storedEvent = db.findLatestEventForPackage(trackedPackage.getTrackingCode());
-            NZPostTrackingEvent recentEvent = trackedPackage.getMostRecentEvent();
+            int eventsCount = db.getEventsCount(trackedPackage.getTrackingCode());
 
             // Also get the label
             String label = db.getLabel(trackedPackage.getTrackingCode());
             trackedPackage.setLabel(label);
 
-            if ((storedEvent == null && recentEvent != null) || !storedEvent.equals(recentEvent)) {
+            if (trackedPackage.getEvents() != null && trackedPackage.getEvents().size() > eventsCount) {
                 updatedPackages.add(trackedPackage);
                 trackedPackage.setHasPendingEvents(true);
                 db.updatePackage(trackedPackage);

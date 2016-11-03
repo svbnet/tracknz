@@ -76,8 +76,8 @@ public class TrackingDB implements Closeable {
      */
     public void insertEvents(String packageCode, List<NZPostTrackingEvent> events) {
         openIfNotOpened();
-//        db.delete(TrackingDBHelper.TBL_TRACKED_PACKAGE_EVENTS, "package = ?", new String[]{packageCode});
-//        Log.d(TAG, "insertEvents: delete for " + packageCode);
+        db.delete(TrackingDBHelper.TBL_TRACKED_PACKAGE_EVENTS, "package = ?", new String[]{packageCode});
+        Log.d(TAG, "insertEvents: delete for " + packageCode);
         for (NZPostTrackingEvent event : events) {
             event.setParentPackage(packageCode);
             db.insertOrThrow(TrackingDBHelper.TBL_TRACKED_PACKAGE_EVENTS, null, createValuesForEvent(event));
@@ -279,6 +279,23 @@ public class TrackingDB implements Closeable {
                 return null;
             }
             return eventFromOrderedCursor(cur);
+        } finally {
+            cur.close();
+        }
+    }
+
+    public int getEventsCount(String packageCode) {
+        openIfNotOpened();
+        Cursor cur = db.query(TrackingDBHelper.TBL_TRACKED_PACKAGE_EVENTS,
+                new String[] { "COUNT(package)" },
+                "package = ?",
+                new String[]{packageCode},
+                null, null, null);
+        try {
+            if (!cur.moveToFirst()) {
+                return 0;
+            }
+            return cur.getInt(0);
         } finally {
             cur.close();
         }

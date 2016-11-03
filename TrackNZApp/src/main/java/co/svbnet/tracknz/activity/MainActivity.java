@@ -76,6 +76,10 @@ public class MainActivity extends ToolbarActivity
         // fragmentContainer is left-hand container on MDV, main container in single view
         isShowingFullPackage = isTablet && !isLandscape && selectedPackage != null;
         applyContainerVisibility();
+
+        if (selectedPackage != null) {
+            showPackageInInfoFragment(selectedPackage);
+        }
     }
 
     @Override
@@ -269,7 +273,13 @@ public class MainActivity extends ToolbarActivity
     @Override
     public void onChange(NZPostTrackedPackage trackedPackage) {
         List<NZPostTrackedPackage> trackedPackageList = mListFragment.getItems();
-        int idx = trackedPackageList.indexOf(trackedPackage);
+        int idx = -1;
+        for (int i = 0; i < trackedPackageList.size(); i++) {
+            if (trackedPackageList.get(i).getTrackingCode().equals(trackedPackage.getTrackingCode())) {
+                idx = i;
+                break;
+            }
+        }
         trackedPackageList.set(idx, trackedPackage);
         mListFragment.invalidateItems();
     }

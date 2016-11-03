@@ -190,10 +190,26 @@ public class NZPostTrackedPackage implements Parcelable {
     public String getErrorCode() {
         return errorCode;
     }
+
     @Override
     public boolean equals(Object o) {
-        NZPostTrackedPackage newPackage = o instanceof NZPostTrackedPackage ? (NZPostTrackedPackage) o : null;
-        return newPackage != null && newPackage.code.equals(code);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NZPostTrackedPackage that = (NZPostTrackedPackage) o;
+
+        if (!code.equals(that.code)) return false;
+        if (source != null ? !source.equals(that.source) : that.source != null) return false;
+        return events != null ? events.equals(that.events) : that.events == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = code.hashCode();
+        result = 31 * result + (source != null ? source.hashCode() : 0);
+        result = 31 * result + (events != null ? events.hashCode() : 0);
+        return result;
     }
 
     public void setCode(String code) {
