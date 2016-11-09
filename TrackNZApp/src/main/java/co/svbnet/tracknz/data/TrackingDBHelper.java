@@ -12,7 +12,7 @@ public class TrackingDBHelper extends SQLiteOpenHelper {
     private static final String TAG = TrackingDBHelper.class.getName();
 
     public static final String DB_NAME = "tracking";
-    public static final int DB_VERSION = 2;
+    public static final int DB_VERSION = 3;
 
     public static final String TBL_TRACKED_PACKAGES = "tracked_packages";
     public static final String TBL_TRACKED_PACKAGE_EVENTS = "tracked_package_events";
@@ -31,7 +31,8 @@ public class TrackingDBHelper extends SQLiteOpenHelper {
                         "package TEXT NOT NULL, " +
                         "flag INTEGER NOT NULL, " +
                         "description TEXT NOT NULL, " +
-                        "datetime TEXT NOT NULL" +
+                        "datetime TEXT NOT NULL," +
+                        "location TEXT" +
                     ");",
     };
 
@@ -56,6 +57,9 @@ public class TrackingDBHelper extends SQLiteOpenHelper {
         Log.w(TAG, String.format("Upgrading DB %s from %d to %d", DB_NAME, oldVersion, newVersion));
         if (oldVersion == 1 && newVersion == 2) {
             upgrade1to2(db);
+        }
+        if (newVersion == 3) {
+            db.execSQL("ALTER TABLE " + TBL_TRACKED_PACKAGE_EVENTS + " ADD COLUMN location TEXT;");
         }
     }
 

@@ -15,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -24,6 +25,7 @@ import android.widget.Toast;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnItemClick;
 import co.svbnet.tracknz.R;
 import co.svbnet.tracknz.adapter.PackageEventsArrayAdapter;
 import co.svbnet.tracknz.data.TrackingDB;
@@ -133,6 +135,32 @@ public class PackageInfoFragment extends Fragment {
             inflater.inflate(R.menu.menu_package_info, menu);
         }
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @OnItemClick(R.id.events_list)
+    public void onEventsListViewItemClick(AdapterView<?> parent, View view, int position, long id) {
+        NZPostTrackingEvent event = mEventsArrayAdapter.getItem(position);
+        showEventInfoDialog(event);
+    }
+
+    private void showEventInfoDialog(NZPostTrackingEvent event) {
+        View dialogView = getActivity().getLayoutInflater().inflate(R.layout.dialog_event_info, null);
+        ((TextView)dialogView.findViewById(R.id.fullEventText)).setText(event.getDescription());
+        if (event.getLocation() != null) {
+            TextView locationText = (TextView)dialogView.findViewById(R.id.locationText);
+            locationText.setVisibility(View.VISIBLE);
+            locationText.setText(event.getLocation());
+        }
+        ((TextView)dialogView.findViewById(R.id.timeAndDateText)).setText(event.getDate().toString());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setView(dialogView)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .show();
     }
 
     @Override

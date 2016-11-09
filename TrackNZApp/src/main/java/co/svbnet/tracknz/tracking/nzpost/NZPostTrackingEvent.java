@@ -2,6 +2,7 @@ package co.svbnet.tracknz.tracking.nzpost;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -26,6 +27,19 @@ public class NZPostTrackingEvent implements Parcelable {
     // NZ Post returns a string in the object named "date", which is a date string which confuses gson
     private Date dateObj;
 
+    @Nullable
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(@Nullable String location) {
+        this.location = location;
+    }
+
+    @Nullable
+    @SerializedName("location")
+    private String location;
+
     public NZPostTrackingEvent() {
     }
 
@@ -34,6 +48,7 @@ public class NZPostTrackingEvent implements Parcelable {
         flagInt = in.readInt();
         description = in.readString();
         dateString = in.readString();
+        location = in.readString();
     }
 
     @Override
@@ -45,6 +60,7 @@ public class NZPostTrackingEvent implements Parcelable {
             dateString = DateFormatUtil.FORMAT.format(dateObj);
         }
         dest.writeString(dateString);
+        dest.writeString(location);
     }
 
     @Override

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:padding="?dialogPreferredPadding"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textSize="18sp"
+        android:id="@+id/fullEventText"
+        tools:text="Full event text"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:id="@+id/locationText"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:foreground="@drawable/ic_map_marker"
+        android:foregroundGravity="left"
+        android:gravity="center_vertical"
+        android:paddingLeft="28dp"
+        android:paddingStart="28dp"
+        tools:text="Location sample"
+        android:layout_marginBottom="7dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:id="@+id/timeAndDateText"
+        android:foreground="@drawable/ic_time_and_date"
+        android:foregroundGravity="left"
+        android:gravity="center_vertical"
+        android:paddingStart="28dp"
+        android:paddingLeft="28dp"
+        tools:text="12/05/2016 3:36pm" />
+
+</LinearLayout>

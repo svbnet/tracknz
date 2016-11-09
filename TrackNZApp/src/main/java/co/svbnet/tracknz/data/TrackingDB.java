@@ -112,6 +112,7 @@ public class TrackingDB implements Closeable {
         values.put("flag", event.getFlag());
         values.put("description", event.getDescription());
         values.put("datetime", DateFormatUtil.FORMAT.format(event.getDate()));
+        values.put("location", event.getLocation());
         return values;
     }
 
